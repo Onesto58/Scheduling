@@ -36,8 +36,8 @@ jobs:
           EOF
 
       - name: Build Web
-        # Using html renderer for better mobile performance
-        run: flutter build web --web-renderer=html --base-href="/Scheduling/"
+        # Temporarily removing web-renderer flag due to runner issues
+        run: flutter build web --base-href="/Scheduling/"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
