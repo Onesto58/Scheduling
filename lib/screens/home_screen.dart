@@ -40,6 +40,7 @@ class HomeScreen extends ConsumerWidget {
             ],
           ),
           routinesAsync.when(
+            skipLoadingOnReload: true,
             data: (routines) => routines.isEmpty
                 ? SliverFillRemaining(
                     child: Center(
