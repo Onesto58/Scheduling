@@ -19,12 +19,16 @@ class HomeScreen extends ConsumerWidget {
         slivers: [
           SliverAppBar.large(
             title: const Text(
-              'Le Mie Pianificazioni',
+              'Routine',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             actions: [
               IconButton(
-                icon: Icon(isDarkMode ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
+                icon: Icon(
+                  isDarkMode
+                      ? Icons.light_mode_outlined
+                      : Icons.dark_mode_outlined,
+                ),
                 onPressed: () {
                   ref.read(themeProvider.notifier).toggleTheme();
                 },
@@ -42,7 +46,9 @@ class HomeScreen extends ConsumerWidget {
                       child: Text(
                         'Nessuna routine salvata.\nInizia premendo il tasto +',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
                   )
@@ -50,16 +56,17 @@ class HomeScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(16),
                     sliver: SliverList(
                       delegate: SliverChildListDelegate(
-                        routines.map((routine) => _RoutineCard(routine: routine)).toList(),
+                        routines
+                            .map((routine) => _RoutineCard(routine: routine))
+                            .toList(),
                       ),
                     ),
                   ),
             loading: () => const SliverFillRemaining(
               child: Center(child: CircularProgressIndicator()),
             ),
-            error: (err, stack) => SliverFillRemaining(
-              child: Center(child: Text('Errore: $err')),
-            ),
+            error: (err, stack) =>
+                SliverFillRemaining(child: Center(child: Text('Errore: $err'))),
           ),
         ],
       ),
@@ -88,9 +95,13 @@ class _RoutineCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final schedule = routine.getSchedule();
-    final firstTaskStartTime = schedule.isNotEmpty ? schedule.first['startTime'] as DateTime : null;
+    final firstTaskStartTime = schedule.isNotEmpty
+        ? schedule.first['startTime'] as DateTime
+        : null;
     final bedtimeSchedule = routine.getBedtimeSchedule();
-    final firstBedtimeStartTime = bedtimeSchedule.isNotEmpty ? bedtimeSchedule.first['startTime'] as DateTime : null;
+    final firstBedtimeStartTime = bedtimeSchedule.isNotEmpty
+        ? bedtimeSchedule.first['startTime'] as DateTime
+        : null;
     final timeFormat = DateFormat('HH:mm');
 
     return Container(
@@ -98,7 +109,11 @@ class _RoutineCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05)),
+        border: Border.all(
+          color: Theme.of(
+            context,
+          ).colorScheme.onSurface.withValues(alpha: 0.05),
+        ),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.all(20),
@@ -112,7 +127,11 @@ class _RoutineCard extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(Icons.exit_to_app, size: 16, color: Colors.blueAccent),
+                const Icon(
+                  Icons.exit_to_app,
+                  size: 16,
+                  color: Colors.blueAccent,
+                ),
                 const SizedBox(width: 4),
                 Text('Uscita: ${timeFormat.format(routine.targetEndTime)}'),
                 const SizedBox(width: 16),
@@ -125,16 +144,26 @@ class _RoutineCard extends StatelessWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(Icons.nightlight_round, size: 16, color: Colors.indigoAccent),
+                  const Icon(
+                    Icons.nightlight_round,
+                    size: 16,
+                    color: Colors.indigoAccent,
+                  ),
                   const SizedBox(width: 4),
-                  Text('Inizio prep. sonno: ${timeFormat.format(firstBedtimeStartTime)}'),
+                  Text(
+                    'Inizio prep. sonno: ${timeFormat.format(firstBedtimeStartTime)}',
+                  ),
                 ],
               ),
             ],
             const SizedBox(height: 8),
             Text(
               '${routine.tasks.length} compiti pianificati',
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
+              style: TextStyle(
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
             ),
           ],
         ),
