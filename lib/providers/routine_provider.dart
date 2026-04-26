@@ -4,7 +4,8 @@ import '../models/routine.dart';
 
 final routineServiceProvider = Provider((ref) => RoutineFirestoreService());
 
-final routinesStreamProvider = StreamProvider.keepAlive<List<Routine>>((ref) {
+final routinesStreamProvider = StreamProvider<List<Routine>>((ref) {
+  ref.keepAlive();
   final service = ref.watch(routineServiceProvider);
   return service.getRoutines();
 });
