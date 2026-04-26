@@ -36,8 +36,9 @@ jobs:
           EOF
 
       - name: Build Web
+        # Using html renderer for better mobile performance and smaller bundle size
         # Replace 'Scheduling' with your repository name if it's different on GitHub
-        run: flutter build web --base-href "/Scheduling/"
+        run: flutter build web --base-href "/Scheduling/" --web-renderer html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
