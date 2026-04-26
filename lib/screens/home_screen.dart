@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/theme_provider.dart';
 import '../providers/routine_provider.dart';
+import '../providers/cache_provider.dart';
 import '../models/routine.dart';
 import 'routine_detail_screen.dart';
 import 'package:intl/intl.dart';
@@ -13,6 +14,8 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final routinesAsync = ref.watch(routinesStreamProvider);
     final isDarkMode = ref.watch(themeProvider) == ThemeMode.dark;
+    // Keep cache active
+    ref.watch(routinesCacheProvider);
 
     return Scaffold(
       body: CustomScrollView(
@@ -41,48 +44,60 @@ class HomeScreen extends ConsumerWidget {
           ),
           routinesAsync.when(
             skipLoadingOnReload: true,
-            data: (routines) => routines.isEmpty
-                ? SliverFillRemaining(
-                    child: Center(
-                      child: Text(
-                        'Nessuna routine salvata.\nInizia premendo il tasto +',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                  )
-                : SliverPadding(
-                    padding: const EdgeInsets.all(16),
-                    sliver: SliverList(
-                      delegate: SliverChildListDelegate(
-                        routines
-                            .map((routine) => _RoutineCard(routine: routine))
-                            .toList(),
-                      ),
-                    ),
-                  ),
-            loading: () => const SliverFillRemaining(
-              child: Center(child: CircularProgressIndicator()),
-            ),
+            data: (routines) => _buildRoutineList(context, routines),
+            loading: () {
+              final cachedRoutines = ref.read(routinesCacheProvider);
+              if (cachedRoutines != null) {
+                return _buildRoutineList(context, cachedRoutines);
+              }
+              return const SliverFillRemaining(
+                child: Center(child: CircularProgressIndicator()),
+              );
+            },
             error: (err, stack) =>
                 SliverFillRemaining(child: Center(child: Text('Errore: $err'))),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const RoutineDetailScreen(routine: null),
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  const RoutineDetailScreen(routine: null),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                return FadeTransition(opacity: animation, child: child);
+              },
             ),
           );
         },
-        label: const Text('Nuova Routine'),
-        icon: const Icon(Icons.add),
-        backgroundColor: Theme.of(context).primaryColor,
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _buildRoutineList(BuildContext context, List<Routine> routines) {
+    if (routines.isEmpty) {
+      return SliverFillRemaining(
+        child: Center(
+          child: Text(
+            'Nessuna routine salvata.\nInizia premendo il tasto +',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      );
+    }
+    return SliverPadding(
+      padding: const EdgeInsets.all(16),
+      sliver: SliverList(
+        delegate: SliverChildListDelegate(
+          routines.map((routine) => _RoutineCard(routine: routine)).toList(),
+        ),
       ),
     );
   }
@@ -171,8 +186,13 @@ class _RoutineCard extends StatelessWidget {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => RoutineDetailScreen(routine: routine),
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  RoutineDetailScreen(routine: routine),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                return FadeTransition(opacity: animation, child: child);
+              },
             ),
           );
         },

@@ -10,7 +10,8 @@ import 'screens/home_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  await Firebase.initializeApp(
+  // Start Firebase initialization in parallel with app startup
+  final firebaseInitialization = Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
@@ -18,14 +19,16 @@ void main() async {
   await NotificationService().init();
 
   runApp(
-    const ProviderScope(
-      child: SchedulingApp(),
+    ProviderScope(
+      child: SchedulingApp(firebaseInitialization: firebaseInitialization),
     ),
   );
 }
 
 class SchedulingApp extends ConsumerWidget {
-  const SchedulingApp({super.key});
+  final Future<FirebaseApp> firebaseInitialization;
+  
+  const SchedulingApp({super.key, required this.firebaseInitialization});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,7 +40,16 @@ class SchedulingApp extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
-      home: const HomeScreen(),
+      home: FutureBuilder(
+        future: firebaseInitialization,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return const HomeScreen();
+          }
+          // Show a blank screen with theme background while initializing
+          return Scaffold(backgroundColor: Theme.of(context).scaffoldBackgroundColor);
+        },
+      ),
     );
   }
 }
