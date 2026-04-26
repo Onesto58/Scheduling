@@ -19,7 +19,7 @@ class HomeScreen extends ConsumerWidget {
         slivers: [
           SliverAppBar.large(
             title: const Text(
-              'Routine',
+              'Routines',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             actions: [
