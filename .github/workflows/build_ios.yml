@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: macos-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -18,6 +20,14 @@ jobs:
         with:
           channel: 'stable'
           cache: true
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile', 'ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
 
       - name: Install dependencies
         run: |
@@ -46,4 +56,11 @@ jobs:
         with:
           name: Scheduling-Unsigned-IPA
           path: Scheduling.ipa
+          retention-days: 7
+
+      - name: Upload Podfile.lock Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Podfile-Lock
+          path: ios/Podfile.lock
           retention-days: 7
