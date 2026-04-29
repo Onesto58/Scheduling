@@ -11,6 +11,8 @@ jobs:
     runs-on: macos-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+      TELEGRAM_TO: ${{ secrets.TELEGRAM_TO }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -64,3 +66,11 @@ jobs:
           name: Podfile-Lock
           path: ios/Podfile.lock
           retention-days: 7
+
+      - name: Send IPA to Telegram
+        if: env.TELEGRAM_TOKEN != '' && env.TELEGRAM_TO != ''
+        run: |
+          curl -F document=@"Scheduling.ipa" \
+               -F chat_id="${{ env.TELEGRAM_TO }}" \
+               -F caption="🚀 Nuova build iOS pronta per l'installazione! (it.onesto58.scheduling)" \
+               https://api.telegram.org/bot${{ env.TELEGRAM_TOKEN }}/sendDocument

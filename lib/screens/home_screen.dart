@@ -63,13 +63,8 @@ class HomeScreen extends ConsumerWidget {
         onPressed: () {
           Navigator.push(
             context,
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  const RoutineDetailScreen(routine: null),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
+            MaterialPageRoute(
+              builder: (context) => const RoutineDetailScreen(routine: null),
             ),
           );
         },
@@ -186,13 +181,8 @@ class _RoutineCard extends StatelessWidget {
         onTap: () {
           Navigator.push(
             context,
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  RoutineDetailScreen(routine: routine),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
+            MaterialPageRoute(
+              builder: (context) => RoutineDetailScreen(routine: routine),
             ),
           );
         },
