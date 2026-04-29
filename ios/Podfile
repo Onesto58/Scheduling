@@ -1,5 +1,6 @@
-# File Podfile standard di Flutter con target 15.0
-load File.join(File.dirname(File.realpath(__FILE__)), '.symlinks', 'flutter', 'Scripts', 'podhelper.rb')
+# Carica lo script di aiuto di Flutter usando la variabile d'ambiente FLUTTER_ROOT
+flutter_root = ENV['FLUTTER_ROOT'] || File.join('..', '..', 'flutter')
+load File.join(flutter_root, 'packages', 'flutter_tools', 'bin', 'podhelper.rb')
 
 platform :ios, '15.0'
 
