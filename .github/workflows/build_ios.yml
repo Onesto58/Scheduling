@@ -1,0 +1,47 @@
+name: Build iOS (Unsigned for AltStore)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Create firebase_options.dart
+        run: |
+          cat <<EOF > lib/firebase_options.dart
+          ${{ secrets.FIREBASE_OPTIONS_DART }}
+          EOF
+
+      - name: Build iOS (No codesign)
+        run: flutter build ios --release --no-codesign
+
+      - name: Create IPA structure
+        run: |
+          mkdir -p Payload
+          mv build/ios/iphoneos/Runner.app Payload/
+          zip -r Scheduling.ipa Payload
+          # Pulizia per sicurezza
+          rm -rf Payload
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Scheduling-Unsigned-IPA
+          path: Scheduling.ipa
+          retention-days: 7
