@@ -80,13 +80,6 @@ jobs:
           path: Scheduling.ipa
           retention-days: 7
 
-      - name: Upload Podfile.lock Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Podfile-Lock
-          path: ios/Podfile.lock
-          retention-days: 7
-
       - name: Debug Telegram Secrets
         run: |
           if [ -z "${{ env.TELEGRAM_TOKEN }}" ]; then
