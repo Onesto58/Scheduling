@@ -23,6 +23,7 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
   late int _sleepCycles;
   bool _isSaving = false;
   bool _isSleepEnabled = false;
+  String? _pendingDeleteTaskId;
 
   @override
   void initState() {
@@ -189,7 +190,10 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Orario di fine/uscita', style: TextStyle(fontSize: 16)),
+                    const Expanded(
+                      child: Text('Orario di fine/uscita', style: TextStyle(fontSize: 16)),
+                    ),
+                    const SizedBox(width: 8),
                     Text(
                       timeFormat.format(_targetEndTime),
                       style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blueAccent),
@@ -240,15 +244,20 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
                     const SizedBox(height: 20),
                     const Text('Quanti cicli di sonno vuoi fare?', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [4, 5, 6].map((c) => ChoiceChip(
-                        label: Text('$c Cicli (${(c * 1.5).toString().replaceAll('.0', '')} ore)'),
-                        selected: _sleepCycles == c,
-                        onSelected: (selected) {
-                          if (selected) setState(() => _sleepCycles = c);
-                        },
-                      )).toList(),
+                    SizedBox(
+                      width: double.infinity,
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        alignment: WrapAlignment.center,
+                        children: [4, 5, 6].map((c) => ChoiceChip(
+                          label: Text('$c Cicli (${(c * 1.5).toString().replaceAll('.0', '')} ore)'),
+                          selected: _sleepCycles == c,
+                          onSelected: (selected) {
+                            if (selected) setState(() => _sleepCycles = c);
+                          },
+                        )).toList(),
+                      ),
                     ),
                     if (fallAsleepTime != null) ...[
                       const SizedBox(height: 20),
@@ -258,8 +267,9 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
                           color: Colors.white.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        child: Wrap(
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             const Text('Dovrai addormentarti alle: ', style: TextStyle(fontSize: 14)),
                             Text(timeFormat.format(fallAsleepTime), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.indigoAccent)),
@@ -310,6 +320,20 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
     return ReorderableListView(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
+      proxyDecorator: (Widget child, int index, Animation<double> animation) {
+        return AnimatedBuilder(
+          animation: animation,
+          builder: (BuildContext context, Widget? child) {
+            return Material(
+              elevation: 8,
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(15),
+              child: child,
+            );
+          },
+          child: child,
+        );
+      },
       onReorder: (oldIndex, newIndex) {
         setState(() {
           if (oldIndex < newIndex) {
@@ -397,9 +421,22 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                icon: Icon(
+                  _pendingDeleteTaskId == task.id ? Icons.delete : Icons.delete_outline,
+                  color: Colors.redAccent,
+                  size: 20,
+                ),
                 onPressed: () {
-                  setState(() => tasks.removeAt(index));
+                  if (_pendingDeleteTaskId == task.id) {
+                    setState(() {
+                      tasks.removeAt(index);
+                      _pendingDeleteTaskId = null;
+                    });
+                  } else {
+                    setState(() {
+                      _pendingDeleteTaskId = task.id;
+                    });
+                  }
                 },
               ),
             ],
