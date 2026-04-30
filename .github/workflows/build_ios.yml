@@ -6,6 +6,9 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -49,12 +52,25 @@ jobs:
       - name: Build iOS (No codesign)
         run: flutter build ios --release --no-codesign
 
+      - name: Commit Podfile.lock
+        if: github.actor != 'github-actions[bot]'
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add ios/Podfile.lock
+
+          if git diff --cached --quiet; then
+            echo "No changes to Podfile.lock"
+          else
+            git commit -m "Update Podfile.lock [auto]"
+            git push
+          fi
+
       - name: Create IPA structure
         run: |
           mkdir -p Payload
           mv build/ios/iphoneos/Runner.app Payload/
           zip -r Scheduling.ipa Payload
-          # Pulizia per sicurezza
           rm -rf Payload
 
       - name: Upload IPA Artifact
@@ -94,7 +110,7 @@ jobs:
                https://api.telegram.org/bot${{ env.TELEGRAM_TOKEN }}/sendDocument)
           
           HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
-          BODY=$(echo "$RESPONSE" | head -n -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
           
           echo "Status Code: $HTTP_STATUS"
           echo "Response Body: $BODY"
