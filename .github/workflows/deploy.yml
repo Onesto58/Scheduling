@@ -17,6 +17,7 @@ permissions:
 
 jobs:
   build:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -27,7 +28,7 @@ jobs:
         with:
           channel: 'stable'
           cache: true
-          cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:" # optimized cache key
+          cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:"
           cache-path: "${{ runner.tool_cache }}/flutter"
 
       - name: Install dependencies
@@ -40,7 +41,6 @@ jobs:
           EOF
 
       - name: Build Web
-        # Temporarily removing web-renderer flag due to runner issues
         run: flutter build web --base-href="/Scheduling/"
 
       - name: Upload artifact
@@ -49,6 +49,7 @@ jobs:
           path: build/web
 
   deploy:
+    if: github.actor != 'github-actions[bot]'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
