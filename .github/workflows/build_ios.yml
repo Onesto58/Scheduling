@@ -6,6 +6,10 @@ on:
       - main
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: macos-latest
@@ -67,10 +71,37 @@ jobs:
           path: ios/Podfile.lock
           retention-days: 7
 
+      - name: Debug Telegram Secrets
+        run: |
+          if [ -z "${{ env.TELEGRAM_TOKEN }}" ]; then
+            echo "❌ TELEGRAM_TOKEN is missing"
+          else
+            echo "✅ TELEGRAM_TOKEN is set (length: ${#TELEGRAM_TOKEN})"
+          fi
+          if [ -z "${{ env.TELEGRAM_TO }}" ]; then
+            echo "❌ TELEGRAM_TO is missing"
+          else
+            echo "✅ TELEGRAM_TO is set"
+          fi
+
       - name: Send IPA to Telegram
         if: env.TELEGRAM_TOKEN != '' && env.TELEGRAM_TO != ''
         run: |
-          curl -F document=@"Scheduling.ipa" \
+          echo "📤 Invio file Scheduling.ipa a Telegram..."
+          RESPONSE=$(curl -s -w "\n%{http_code}" -F document=@"Scheduling.ipa" \
                -F chat_id="${{ env.TELEGRAM_TO }}" \
-               -F caption="🚀 Nuova build iOS pronta per l'installazione! (it.onesto58.scheduling)" \
-               https://api.telegram.org/bot${{ env.TELEGRAM_TOKEN }}/sendDocument
+               -F caption="🚀 Nuova build iOS pronta! (it.onesto58.scheduling)" \
+               https://api.telegram.org/bot${{ env.TELEGRAM_TOKEN }}/sendDocument)
+          
+          HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          
+          echo "Status Code: $HTTP_STATUS"
+          echo "Response Body: $BODY"
+          
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "❌ Errore durante l'invio a Telegram"
+            exit 1
+          else
+            echo "✅ File inviato correttamente!"
+          fi
