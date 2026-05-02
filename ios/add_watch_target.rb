@@ -37,9 +37,11 @@ end
 watch_group.new_reference('Info.plist')
 
 # 4. Creazione del target Watch App (SwiftUI)
-# Usiamo ios_target come host per creare il legame di parentela
-watch_target = project.new_target(:application, 'WatchApp', :watchos, '9.0', ios_target, :swift)
+watch_target = project.new_target(:application, 'WatchApp', :watchos, '9.0', nil, :swift)
 watch_target.product_type = 'com.apple.product-type.application'
+
+# Aggiunta dipendenza per garantire l'ordine di build
+ios_target.add_dependency(watch_target)
 
 # 5. Configurazione Build Settings per l'orologio
 watch_target.build_configurations.each do |config|
