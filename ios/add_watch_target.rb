@@ -27,14 +27,14 @@ watch_group.set_source_tree('<group>')
 files = [
   'WatchApp.swift',
   'ContentView.swift',
-  'WatchViewModel.swift'
+  'WatchViewModel.swift',
+  'Info.plist'
 ].map do |name|
   watch_group.new_reference(name)
 end
 
 # 4. Creazione del target Watch App (SwiftUI)
 watch_target = project.new_target(:watch2_app, 'WatchApp', :watchos, '9.0', nil, :swift)
-watch_target.product_type = 'com.apple.product-type.application'
 
 # Aggiunta dipendenza
 ios_target.add_dependency(watch_target)
@@ -48,9 +48,7 @@ watch_target.build_configurations.each do |config|
   config.build_settings['WATCHOS_DEPLOYMENT_TARGET'] = '9.0'
   config.build_settings['SDKROOT'] = 'watchos'
   config.build_settings['TARGETED_DEVICE_FAMILY'] = '4' # 4 = Watch
-  config.build_settings['INFOPLIST_KEY_CFBundleDisplayName'] = 'Scheduling'
-  config.build_settings['INFOPLIST_KEY_WKCompanionAppBundleIdentifier'] = base_bundle_id
-  config.build_settings['GENERATE_INFOPLIST_FILE'] = 'YES'
+  config.build_settings['INFOPLIST_FILE'] = 'WatchApp/Info.plist'
 end
 
 # 6. Aggiunta dei file al target
