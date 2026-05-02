@@ -23,15 +23,17 @@ watch_group = project.main_group.find_subpath('WatchApp', true)
 watch_group.set_path('WatchApp')
 watch_group.set_source_tree('<group>')
 
-# Aggiunta dei file al gruppo
-files = [
+# Aggiunta dei file al gruppo (Info.plist deve esserci per essere trovato)
+files_to_add = [
   'WatchApp.swift',
   'ContentView.swift',
-  'WatchViewModel.swift',
-  'Info.plist'
+  'WatchViewModel.swift'
 ].map do |name|
   watch_group.new_reference(name)
 end
+
+# Aggiungiamo il riferimento a Info.plist solo al gruppo, non alle fasi di build
+watch_group.new_reference('Info.plist')
 
 # 4. Creazione del target Watch App (SwiftUI)
 watch_target = project.new_target(:application, 'WatchApp', :watchos, '9.0', nil, :swift)
@@ -52,8 +54,8 @@ watch_target.build_configurations.each do |config|
   config.build_settings['INFOPLIST_FILE'] = 'WatchApp/Info.plist'
 end
 
-# 6. Aggiunta dei file al target
-watch_target.add_file_references(files)
+# 6. Aggiunta dei file alle fasi di build (solo sorgenti, no Info.plist)
+watch_target.add_file_references(files_to_add)
 
 # 7. Assicurarsi che l'app iOS includa la Watch App
 embed_watch_app_phase = ios_target.copy_files_build_phases.find { |p| p.name == 'Embed Watch Content' } || 
