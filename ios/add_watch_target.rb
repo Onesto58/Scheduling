@@ -59,13 +59,13 @@ end
 # 6. Aggiunta dei file alle fasi di build (solo sorgenti, no Info.plist)
 watch_target.add_file_references(files_to_add)
 
-# 7. Assicurarsi che l'app iOS includa la Watch App nel percorso corretto per AltStore
-embed_watch_app_phase = ios_target.copy_files_build_phases.find { |p| p.name == 'Embed Watch Content' } || 
-                        ios_target.new_copy_files_build_phase('Embed Watch Content')
-embed_watch_app_phase.dst_subfolder_spec = '1' # Wrapper
-embed_watch_app_phase.dst_path = 'Watch'
+# 7. Assicurarsi che l'app iOS includa la Watch App (Sempre come ULTIMA fase)
+# Rimuoviamo la fase se esiste per ricrearla in fondo
+ios_target.build_phases.delete_if { |p| p.display_name == 'Embed Watch Content' }
+embed_watch_app_phase = ios_target.new_copy_files_build_phase('Embed Watch Content')
+embed_watch_app_phase.dst_subfolder_spec = '16'
 embed_watch_app_phase.add_file_reference(watch_target.product_reference)
 
 # 8. Salvataggio del progetto
 project.save
-puts "✨ Progetto Xcode aggiornato! Watch App configurata in /Watch"
+puts "✨ Progetto Xcode aggiornato! Watch App configurata in fondo al processo di build."
