@@ -43,6 +43,8 @@ ios_target.add_dependency(watch_target)
 # 5. Configurazione Build Settings per l'orologio
 watch_target.build_configurations.each do |config|
   config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = watch_bundle_id
+  config.build_settings['PRODUCT_NAME'] = 'WatchApp'
+  config.build_settings['SWIFT_VERSION'] = '5.0'
   config.build_settings['SKIP_INSTALL'] = 'YES'
   config.build_settings['WATCHOS_DEPLOYMENT_TARGET'] = '9.0'
   config.build_settings['SDKROOT'] = 'watchos'
