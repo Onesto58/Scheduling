@@ -58,6 +58,9 @@ jobs:
       - name: Build iOS (No codesign)
         run: flutter build ios --release --no-codesign
 
+      - name: Inspect Build Output (Diagnostic)
+        run: ls -R build/ios/iphoneos/Runner.app | grep -A 5 "Watch" || echo "Watch folder not found"
+
       - name: Commit Podfile.lock
         if: github.actor != 'github-actions[bot]'
         run: |
