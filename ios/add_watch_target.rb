@@ -7,7 +7,8 @@ project = Xcodeproj::Project.open(project_path)
 # 1. Configurazione Bundle IDs
 ios_target_name = 'Runner'
 ios_target = project.targets.find { |t| t.name == ios_target_name }
-base_bundle_id = 'it.onesto58.scheduling'
+# Includiamo il Team ID visto nello screenshot per garantire la compatibilità
+base_bundle_id = 'it.onesto58.scheduling.3B8967ULB4'
 watch_bundle_id = "#{base_bundle_id}.watchkitapp"
 
 # 2. Verifica se il target esiste già per evitare duplicati
@@ -36,11 +37,9 @@ end
 watch_group.new_reference('Info.plist')
 
 # 4. Creazione del target Watch App (SwiftUI)
-watch_target = project.new_target(:application, 'WatchApp', :watchos, '9.0', nil, :swift)
+# Usiamo ios_target come host per creare il legame di parentela
+watch_target = project.new_target(:application, 'WatchApp', :watchos, '9.0', ios_target, :swift)
 watch_target.product_type = 'com.apple.product-type.application'
-
-# Aggiunta dipendenza
-ios_target.add_dependency(watch_target)
 
 # 5. Configurazione Build Settings per l'orologio
 watch_target.build_configurations.each do |config|
@@ -52,6 +51,7 @@ watch_target.build_configurations.each do |config|
   config.build_settings['SDKROOT'] = 'watchos'
   config.build_settings['TARGETED_DEVICE_FAMILY'] = '4' # 4 = Watch
   config.build_settings['INFOPLIST_FILE'] = 'WatchApp/Info.plist'
+  config.build_settings['WATCH_PARENT_BUNDLE_ID'] = base_bundle_id
 end
 
 # 6. Aggiunta dei file alle fasi di build (solo sorgenti, no Info.plist)

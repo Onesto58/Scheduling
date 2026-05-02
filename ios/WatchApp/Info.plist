@@ -23,7 +23,7 @@
 	<key>WKApplication</key>
 	<true/>
 	<key>WKCompanionAppBundleIdentifier</key>
-	<string>it.onesto58.scheduling</string>
+	<string>$(WATCH_PARENT_BUNDLE_ID)</string>
 	<key>WKRunsIndependentlyOfCompanionApp</key>
 	<false/>
 </dict>
