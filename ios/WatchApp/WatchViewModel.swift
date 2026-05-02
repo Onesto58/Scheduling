@@ -2,7 +2,7 @@ import WatchConnectivity
 import SwiftUI
 
 class WatchViewModel: NSObject, ObservableObject, WCSessionDelegate {
-    @Published var routineName: String = "Nessuna Routine"
+    @Published var routineName: String = "Sincronizza..."
     @Published var tasks: [[String: Any]] = []
     @Published var bedtimeTasks: [[String: Any]] = []
     @Published var lastUpdate: String = ""
@@ -12,24 +12,30 @@ class WatchViewModel: NSObject, ObservableObject, WCSessionDelegate {
     override init() {
         super.init()
         if WCSession.isSupported() {
-            let session = WCSession.default
-            session.delegate = self
-            session.activate()
+            WCSession.default.delegate = self
+            WCSession.default.activate()
         }
     }
+
+    // MARK: - WCSessionDelegate
 
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
         // Sessione attivata
     }
 
-    // Ricezione dati tramite Application Context (metodo preferito)
+    #if os(iOS)
+    func sessionDidBecomeInactive(_ session: WCSession) {}
+    func sessionDidDeactivate(_ session: WCSession) {
+        session.activate()
+    }
+    #endif
+
     func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String : Any]) {
         DispatchQueue.main.async {
             self.updateData(from: applicationContext)
         }
     }
 
-    // Ricezione messaggi immediati
     func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
         DispatchQueue.main.async {
             self.updateData(from: message)
@@ -37,9 +43,17 @@ class WatchViewModel: NSObject, ObservableObject, WCSessionDelegate {
     }
 
     private func updateData(from data: [String: Any]) {
-        self.routineName = data["name"] as? String ?? "Routine"
-        self.tasks = data["tasks"] as? [[String: Any]] ?? []
-        self.bedtimeTasks = data["bedtimeTasks"] as? [[String: Any]] ?? []
-        self.lastUpdate = data["lastUpdate"] as? String ?? ""
+        if let name = data["name"] as? String {
+            self.routineName = name
+        }
+        if let tasks = data["tasks"] as? [[String: Any]] {
+            self.tasks = tasks
+        }
+        if let bedtimeTasks = data["bedtimeTasks"] as? [[String: Any]] {
+            self.bedtimeTasks = bedtimeTasks
+        }
+        if let lastUpdate = data["lastUpdate"] as? String {
+            self.lastUpdate = lastUpdate
+        }
     }
 }
