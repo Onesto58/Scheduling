@@ -20,17 +20,16 @@ puts "🚀 Aggiunta target Apple Watch al progetto..."
 
 # 3. Creazione del gruppo di file per la Watch App
 watch_group = project.main_group.find_subpath('WatchApp', true)
+watch_group.set_path('WatchApp')
 watch_group.set_source_tree('<group>')
 
 # Aggiunta dei file al gruppo
-file_paths = [
-  'ios/WatchApp/WatchApp.swift',
-  'ios/WatchApp/ContentView.swift',
-  'ios/WatchApp/WatchViewModel.swift'
-]
-
-files = file_paths.map do |path|
-  watch_group.new_reference(File.basename(path))
+files = [
+  'WatchApp.swift',
+  'ContentView.swift',
+  'WatchViewModel.swift'
+].map do |name|
+  watch_group.new_reference(name)
 end
 
 # 4. Creazione del target Watch App (SwiftUI)
