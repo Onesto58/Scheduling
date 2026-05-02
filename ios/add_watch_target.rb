@@ -58,7 +58,7 @@ watch_target.add_file_references(files)
 # 7. Assicurarsi che l'app iOS includa la Watch App
 embed_watch_app_phase = ios_target.copy_files_build_phases.find { |p| p.name == 'Embed Watch Content' } || 
                         ios_target.new_copy_files_build_phase('Embed Watch Content')
-embed_watch_app_phase.symbol_dst_subfolder_spec = :watch_app
+embed_watch_app_phase.symbol_dst_subfolder_spec = :watch_apps
 embed_watch_app_phase.add_file_reference(watch_target.product_reference)
 
 # 8. Salvataggio del progetto
