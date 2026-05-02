@@ -52,6 +52,15 @@ jobs:
       - name: Build iOS (No codesign)
         run: flutter build ios --release --no-codesign
 
+      - name: Install xcodeproj
+        run: gem install xcodeproj
+
+      - name: Integrate Apple Watch Target
+        run: ruby ios/add_watch_target.rb
+
+      - name: Rebuild with Watch App
+        run: flutter build ios --release --no-codesign
+
       - name: Commit Podfile.lock
         if: github.actor != 'github-actions[bot]'
         run: |

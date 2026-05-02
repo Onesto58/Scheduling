@@ -4,6 +4,7 @@ import '../models/routine.dart';
 import '../models/app_task.dart';
 import '../providers/routine_provider.dart';
 import '../services/notification_service.dart';
+import '../services/watch_service.dart';
 import 'package:intl/intl.dart';
 
 class RoutineDetailScreen extends ConsumerStatefulWidget {
@@ -113,6 +114,9 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
       );
 
       await ref.read(routineServiceProvider).saveRoutine(routineToSave);
+      
+      // Sincronizza con Apple Watch
+      await WatchService().syncRoutine(routineToSave);
       
       // Schedule notifications for this routine
       await NotificationService().scheduleRoutineNotifications(routineToSave);
@@ -314,24 +318,24 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
   }
 
   Widget _buildTaskList(List<Map<String, dynamic>> schedule, {required bool isBedtime}) {
-    final timeFormat = DateFormat('HH:mm');
     final tasks = isBedtime ? _bedtimeTasks : _tasks;
     
     return ReorderableListView(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
+      buildDefaultDragHandles: false,
       proxyDecorator: (Widget child, int index, Animation<double> animation) {
+        final item = schedule[index];
         return AnimatedBuilder(
           animation: animation,
           builder: (BuildContext context, Widget? child) {
             return Material(
-              elevation: 8,
-              color: Theme.of(context).colorScheme.surface,
+              elevation: 10,
               borderRadius: BorderRadius.circular(15),
-              child: child,
+              color: Colors.transparent,
+              child: _buildTaskCard(item, index, isBedtime, isDragging: true),
             );
           },
-          child: child,
         );
       },
       onReorder: (oldIndex, newIndex) {
@@ -347,102 +351,121 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
         final index = entry.key;
         final item = entry.value;
         final task = item['task'] as AppTask;
-        final startTime = item['startTime'] as DateTime;
 
-        return Container(
+        return Padding(
           key: ValueKey(task.id),
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.03),
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05)),
-          ),
-          child: Row(
-            children: [
-              ReorderableDragStartListener(
-                index: index,
-                child: Icon(Icons.drag_indicator, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.24)),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                children: [
-                  Text(timeFormat.format(startTime),
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                   Icon(Icons.arrow_downward, size: 16, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.24)),
-                  Text(timeFormat.format(item['endTime']),
-                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38), fontSize: 12)),
-                ],
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextFormField(
-                      initialValue: task.title,
-                      onChanged: (val) {
-                        if (isBedtime) {
-                          _bedtimeTasks[index] = _bedtimeTasks[index].copyWith(title: val);
-                        } else {
-                          _tasks[index] = _tasks[index].copyWith(title: val);
-                        }
-                      },
-                      decoration: const InputDecoration(
-                          border: InputBorder.none, isDense: true, hintText: 'Cosa devi fare?'),
-                    ),
-                    Row(
-                      children: [
-                         Icon(Icons.timer_outlined, size: 14, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)),
-                        const SizedBox(width: 4),
-                        SizedBox(
-                          width: 40,
-                          child: TextFormField(
-                            initialValue: task.duration.inMinutes.toString(),
-                            keyboardType: TextInputType.number,
-                            onChanged: (val) {
-                              final mins = int.tryParse(val) ?? 0;
-                              setState(() {
-                                if (isBedtime) {
-                                  _bedtimeTasks[index] = _bedtimeTasks[index].copyWith(duration: Duration(minutes: mins));
-                                } else {
-                                  _tasks[index] = _tasks[index].copyWith(duration: Duration(minutes: mins));
-                                }
-                              });
-                            },
-                            style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)),
-                            decoration: const InputDecoration(border: InputBorder.none, isDense: true),
-                          ),
-                        ),
-                        const Text('minuti', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                icon: Icon(
-                  _pendingDeleteTaskId == task.id ? Icons.delete : Icons.delete_outline,
-                  color: Colors.redAccent,
-                  size: 20,
-                ),
-                onPressed: () {
-                  if (_pendingDeleteTaskId == task.id) {
-                    setState(() {
-                      tasks.removeAt(index);
-                      _pendingDeleteTaskId = null;
-                    });
-                  } else {
-                    setState(() {
-                      _pendingDeleteTaskId = task.id;
-                    });
-                  }
-                },
-              ),
-            ],
-          ),
+          padding: const EdgeInsets.only(bottom: 12),
+          child: _buildTaskCard(item, index, isBedtime),
         );
       }).toList(),
+    );
+  }
+
+  Widget _buildTaskCard(Map<String, dynamic> item, int index, bool isBedtime, {bool isDragging = false}) {
+    final task = item['task'] as AppTask;
+    final startTime = item['startTime'] as DateTime;
+    final timeFormat = DateFormat('HH:mm');
+    final tasks = isBedtime ? _bedtimeTasks : _tasks;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDragging 
+            ? Theme.of(context).colorScheme.surface 
+            : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(
+          color: isDragging 
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)
+              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05)
+        ),
+      ),
+      child: Row(
+        children: [
+          ReorderableDragStartListener(
+            index: index,
+            child: Icon(
+              Icons.drag_indicator, 
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isDragging ? 0.54 : 0.24)
+            ),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            children: [
+              Text(timeFormat.format(startTime),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Icon(Icons.arrow_downward, size: 16, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.24)),
+              Text(timeFormat.format(item['endTime']),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38), fontSize: 12)),
+            ],
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextFormField(
+                  initialValue: task.title,
+                  onChanged: (val) {
+                    if (isBedtime) {
+                      _bedtimeTasks[index] = _bedtimeTasks[index].copyWith(title: val);
+                    } else {
+                      _tasks[index] = _tasks[index].copyWith(title: val);
+                    }
+                  },
+                  decoration: const InputDecoration(
+                      border: InputBorder.none, isDense: true, hintText: 'Cosa devi fare?'),
+                ),
+                Row(
+                  children: [
+                    Icon(Icons.timer_outlined, size: 14, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)),
+                    const SizedBox(width: 4),
+                    SizedBox(
+                      width: 40,
+                      child: TextFormField(
+                        initialValue: task.duration.inMinutes.toString(),
+                        keyboardType: TextInputType.number,
+                        onChanged: (val) {
+                          final mins = int.tryParse(val) ?? 0;
+                          setState(() {
+                            if (isBedtime) {
+                              _bedtimeTasks[index] = _bedtimeTasks[index].copyWith(duration: Duration(minutes: mins));
+                            } else {
+                              _tasks[index] = _tasks[index].copyWith(duration: Duration(minutes: mins));
+                            }
+                          });
+                        },
+                        style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)),
+                        decoration: const InputDecoration(border: InputBorder.none, isDense: true),
+                      ),
+                    ),
+                    const Text('minuti', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(
+              _pendingDeleteTaskId == task.id ? Icons.delete : Icons.delete_outline,
+              color: Colors.redAccent,
+              size: 20,
+            ),
+            onPressed: () {
+              if (_pendingDeleteTaskId == task.id) {
+                setState(() {
+                  tasks.removeAt(index);
+                  _pendingDeleteTaskId = null;
+                });
+              } else {
+                setState(() {
+                  _pendingDeleteTaskId = task.id;
+                });
+              }
+            },
+          ),
+        ],
+      ),
     );
   }
 }
