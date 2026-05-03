@@ -26,5 +26,9 @@
 	<string>$(WATCH_PARENT_BUNDLE_ID)</string>
 	<key>WKRunsIndependentlyOfCompanionApp</key>
 	<false/>
+	<key>UIDeviceFamily</key>
+	<array>
+		<integer>4</integer>
+	</array>
 </dict>
 </plist>
