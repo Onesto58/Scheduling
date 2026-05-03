@@ -58,8 +58,22 @@ jobs:
       - name: Build iOS (No codesign)
         run: flutter build ios --release --no-codesign
 
-      - name: Inspect Build Output (Diagnostic)
-        run: ls -R build/ios/iphoneos/Runner.app | grep -A 5 "Watch" || echo "Watch folder not found"
+      - name: Inspect and Fix Watch App (Surgery)
+        run: |
+          ls -R build/ios/iphoneos/Runner.app | grep -A 5 "Watch" || echo "Watch folder not found"
+          # Forza UIDeviceFamily a 4 nel file Info.plist compilato dell'orologio
+          # Usiamo PlistBuddy per manipolare il file binario compilato
+          INFOPLIST="build/ios/iphoneos/Runner.app/Watch/WatchApp.app/Info.plist"
+          if [ -f "$INFOPLIST" ]; then
+            echo "🔧 Applicazione chirurgia a $INFOPLIST"
+            /usr/libexec/PlistBuddy -c "Delete :UIDeviceFamily" "$INFOPLIST" || true
+            /usr/libexec/PlistBuddy -c "Add :UIDeviceFamily array" "$INFOPLIST"
+            /usr/libexec/PlistBuddy -c "Add :UIDeviceFamily:0 integer 4" "$INFOPLIST"
+            echo "✅ UIDeviceFamily forzato a 4"
+            /usr/libexec/PlistBuddy -c "Print :UIDeviceFamily" "$INFOPLIST"
+          else
+            echo "❌ Errore: Info.plist dell'orologio non trovato!"
+          fi
 
       - name: Commit Podfile.lock
         if: github.actor != 'github-actions[bot]'
