@@ -38,7 +38,7 @@ watch_group.new_reference('Info.plist')
 
 # 4. Creazione del target Watch App (SwiftUI)
 watch_target = project.new_target(:application, 'WatchApp', :watchos, '9.0', nil, :swift)
-watch_target.product_type = 'com.apple.product-type.application.watchapp2'
+watch_target.product_type = 'com.apple.product-type.application'
 
 # Aggiunta dipendenza per garantire l'ordine di build
 ios_target.add_dependency(watch_target)
