@@ -69,8 +69,12 @@ jobs:
             /usr/libexec/PlistBuddy -c "Delete :UIDeviceFamily" "$INFOPLIST" || true
             /usr/libexec/PlistBuddy -c "Add :UIDeviceFamily array" "$INFOPLIST"
             /usr/libexec/PlistBuddy -c "Add :UIDeviceFamily:0 integer 4" "$INFOPLIST"
-            echo "✅ UIDeviceFamily forzato a 4"
-            /usr/libexec/PlistBuddy -c "Print :UIDeviceFamily" "$INFOPLIST"
+            # Allineamento versioni con l'app principale
+            /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 1.0.0" "$INFOPLIST"
+            /usr/libexec/PlistBuddy -c "Set :CFBundleVersion 1" "$INFOPLIST"
+            /usr/libexec/PlistBuddy -c "Add :MinimumOSVersion string 9.0" "$INFOPLIST" || /usr/libexec/PlistBuddy -c "Set :MinimumOSVersion 9.0" "$INFOPLIST"
+            echo "✅ Chirurgia completata (DeviceFamily=4, Version=1.0.0, MinOS=9.0)"
+            /usr/libexec/PlistBuddy -c "Print" "$INFOPLIST"
           else
             echo "❌ Errore: Info.plist dell'orologio non trovato!"
           fi
