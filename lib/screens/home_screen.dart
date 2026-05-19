@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/theme_provider.dart';
 import '../providers/routine_provider.dart';
 import '../providers/cache_provider.dart';
+import '../providers/app_choice_provider.dart';
 import '../models/routine.dart';
 import 'routine_detail_screen.dart';
 import 'package:intl/intl.dart';
@@ -37,8 +38,11 @@ class HomeScreen extends ConsumerWidget {
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.settings_outlined),
-                onPressed: () {},
+                icon: const Icon(Icons.apps_rounded),
+                tooltip: 'Cambia applicazione',
+                onPressed: () {
+                  ref.read(appChoiceProvider.notifier).setAppChoice(null);
+                },
               ),
             ],
           ),

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/theme_provider.dart';
-import 'home_screen.dart';
-import 'sync_diary_home_screen.dart';
+import '../providers/app_choice_provider.dart';
 
 class SelectionScreen extends ConsumerWidget {
   const SelectionScreen({super.key});
@@ -116,12 +115,7 @@ class SelectionScreen extends ConsumerWidget {
                             ? [const Color(0xFF2563EB), const Color(0xFF1D4ED8)]
                             : [const Color(0xFF3B82F6), const Color(0xFF2563EB)],
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const HomeScreen(),
-                            ),
-                          );
+                          ref.read(appChoiceProvider.notifier).setAppChoice('scheduling');
                         },
                       ),
                       const SizedBox(height: 20),
@@ -138,12 +132,7 @@ class SelectionScreen extends ConsumerWidget {
                             ? [const Color(0xFF059669), const Color(0xFF047857)]
                             : [const Color(0xFF10B981), const Color(0xFF059669)],
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SyncDiaryHomeScreen(),
-                            ),
-                          );
+                          ref.read(appChoiceProvider.notifier).setAppChoice('sync_diary');
                         },
                       ),
                     ],

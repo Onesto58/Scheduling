@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../providers/theme_provider.dart';
 import '../providers/sync_appointment_provider.dart';
+import '../providers/app_choice_provider.dart';
 import 'sync_diary_calendario_screen.dart';
 import 'sync_diary_pagamenti_screen.dart';
 import 'sync_diary_registra_pagamento_screen.dart';
@@ -31,8 +32,11 @@ class SyncDiaryHomeScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.apps_rounded),
+          tooltip: 'Cambia applicazione',
+          onPressed: () {
+            ref.read(appChoiceProvider.notifier).setAppChoice(null);
+          },
         ),
         title: const Text(
           'Sync Diary',

@@ -8,6 +8,9 @@ import 'theme/app_theme.dart';
 import 'services/notification_service.dart';
 import 'services/quick_actions_service.dart';
 import 'screens/selection_screen.dart';
+import 'screens/home_screen.dart';
+import 'screens/sync_diary_home_screen.dart';
+import 'providers/app_choice_provider.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -60,6 +63,7 @@ class _SchedulingAppState extends ConsumerState<SchedulingApp> {
   @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeProvider);
+    final appChoice = ref.watch(appChoiceProvider);
 
     return MaterialApp(
       navigatorKey: navigatorKey,
@@ -72,7 +76,13 @@ class _SchedulingAppState extends ConsumerState<SchedulingApp> {
         future: widget.firebaseInitialization,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            return const SelectionScreen();
+            if (appChoice == 'scheduling') {
+              return const HomeScreen();
+            } else if (appChoice == 'sync_diary') {
+              return const SyncDiaryHomeScreen();
+            } else {
+              return const SelectionScreen();
+            }
           }
           // Show a blank screen with theme background while initializing
           return Scaffold(backgroundColor: Theme.of(context).scaffoldBackgroundColor);
