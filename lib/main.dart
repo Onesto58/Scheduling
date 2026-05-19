@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'firebase_options.dart';
 import 'providers/theme_provider.dart';
 import 'theme/app_theme.dart';
 import 'services/notification_service.dart';
 import 'services/quick_actions_service.dart';
-import 'screens/home_screen.dart';
+import 'screens/selection_screen.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,6 +15,9 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize date formatting for Italian locale
+  await initializeDateFormatting('it_IT', null);
   
   // Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
@@ -68,7 +72,7 @@ class _SchedulingAppState extends ConsumerState<SchedulingApp> {
         future: widget.firebaseInitialization,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            return const HomeScreen();
+            return const SelectionScreen();
           }
           // Show a blank screen with theme background while initializing
           return Scaffold(backgroundColor: Theme.of(context).scaffoldBackgroundColor);
