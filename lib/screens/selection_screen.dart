@@ -120,12 +120,13 @@ class SelectionScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 20),
 
-                      // Card 2: Sync Diary (To Replicate)
+                      // Card 2: Psico
                       _buildAppCard(
                         context: context,
-                        title: 'Sync Diary',
-                        subtitle: 'Tracciamento Pagamenti & Appuntamenti',
-                        description: 'Visualizza il calendario, registra nuovi pagamenti, gestisci scadenze e controlla gli arretrati.',
+                        title: 'Psico',
+                        subtitle: 'Appuntamenti e pagamenti',
+                        //description: 'Visualizza il calendario, registra nuovi pagamenti, gestisci scadenze e controlla gli arretrati.',
+                        description: '',
                         icon: Icons.calendar_month_rounded,
                         accentColor: const Color(0xFF10B981),
                         gradientColors: isDarkMode
@@ -133,6 +134,23 @@ class SelectionScreen extends ConsumerWidget {
                             : [const Color(0xFF10B981), const Color(0xFF059669)],
                         onTap: () {
                           ref.read(appChoiceProvider.notifier).setAppChoice('sync_diary');
+                        },
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Card 3: Pianificatore grafico
+                      _buildAppCard(
+                        context: context,
+                        title: 'Pianificatore grafico',
+                        subtitle: 'Visualizza la tua giornata',
+                        description: 'Pianifica e visualizza le attività svolte durante la giornata con una timeline oraria.',
+                        icon: Icons.view_timeline_rounded,
+                        accentColor: const Color(0xFF8B5CF6),
+                        gradientColors: isDarkMode
+                            ? [const Color(0xFF7C3AED), const Color(0xFF6D28D9)]
+                            : [const Color(0xFF8B5CF6), const Color(0xFF7C3AED)],
+                        onTap: () {
+                          ref.read(appChoiceProvider.notifier).setAppChoice('pianificatore_grafico');
                         },
                       ),
                     ],

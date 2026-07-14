@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -10,6 +11,7 @@ import 'services/quick_actions_service.dart';
 import 'screens/selection_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/sync_diary_home_screen.dart';
+import 'screens/pianificatore_grafico_screen.dart';
 import 'providers/app_choice_provider.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -69,6 +71,13 @@ class _SchedulingAppState extends ConsumerState<SchedulingApp> {
       navigatorKey: navigatorKey,
       title: 'Scheduling App',
       debugShowCheckedModeBanner: false,
+      locale: const Locale('it', 'IT'),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('it', 'IT')],
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
@@ -80,6 +89,8 @@ class _SchedulingAppState extends ConsumerState<SchedulingApp> {
               return const HomeScreen();
             } else if (appChoice == 'sync_diary') {
               return const SyncDiaryHomeScreen();
+            } else if (appChoice == 'pianificatore_grafico') {
+              return const PianificatoreGraficoScreen();
             } else {
               return const SelectionScreen();
             }

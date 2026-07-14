@@ -19,10 +19,15 @@ class SyncDiaryHomeScreen extends ConsumerWidget {
     final appointments = ref.watch(syncAppointmentsProvider);
 
     // Calculate Arretrati da Pagare (status 'svolto')
-    final svoltoAppointments = appointments.where((a) => a.status == 'svolto').toList();
+    final svoltoAppointments = appointments
+        .where((a) => a.status == 'svolto')
+        .toList();
     final countArretrati = svoltoAppointments.length;
-    final sumArretratiCents = svoltoAppointments.fold<int>(0, (sum, a) => sum + a.effectivePriceCents);
-    
+    final sumArretratiCents = svoltoAppointments.fold<int>(
+      0,
+      (sum, a) => sum + a.effectivePriceCents,
+    );
+
     final formattedSum = NumberFormat.currency(
       locale: 'it_IT',
       symbol: '€',
@@ -39,15 +44,13 @@ class SyncDiaryHomeScreen extends ConsumerWidget {
           },
         ),
         title: const Text(
-          'Sync Diary',
+          'Psico',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
             icon: Icon(
-              isDarkMode
-                  ? Icons.light_mode_outlined
-                  : Icons.dark_mode_outlined,
+              isDarkMode ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
             ),
             onPressed: () {
               ref.read(themeProvider.notifier).toggleTheme();
@@ -70,9 +73,12 @@ class SyncDiaryHomeScreen extends ConsumerWidget {
                       const SizedBox(height: 16),
                       Text(
                         'Gestione Appuntamenti',
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: isDarkMode ? Colors.white : const Color(0xFF0F172A),
+                              color: isDarkMode
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
                             ),
                         textAlign: TextAlign.center,
                       ),
@@ -80,7 +86,9 @@ class SyncDiaryHomeScreen extends ConsumerWidget {
                       Text(
                         'Sistema di tracciamento pagamenti',
                         style: TextStyle(
-                          color: isDarkMode ? Colors.white70 : const Color(0xFF64748B),
+                          color: isDarkMode
+                              ? Colors.white70
+                              : const Color(0xFF64748B),
                           fontSize: 16,
                         ),
                         textAlign: TextAlign.center,
@@ -92,12 +100,16 @@ class SyncDiaryHomeScreen extends ConsumerWidget {
 
                 // Grid of KPI Cards
                 GridView.count(
-                  crossAxisCount: MediaQuery.of(context).size.width > 600 ? 2 : 1,
+                  crossAxisCount: MediaQuery.of(context).size.width > 600
+                      ? 2
+                      : 1,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
-                  childAspectRatio: MediaQuery.of(context).size.width > 600 ? 2.2 : 2.1,
+                  childAspectRatio: MediaQuery.of(context).size.width > 600
+                      ? 2.2
+                      : 2.1,
                   children: [
                     // Card 1: Arretrati
                     _buildKpiCard(
@@ -122,7 +134,9 @@ class SyncDiaryHomeScreen extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
-                              color: isDarkMode ? Colors.amberAccent : Colors.amber.shade800,
+                              color: isDarkMode
+                                  ? Colors.amberAccent
+                                  : Colors.amber.shade800,
                             ),
                           ),
                         ],
@@ -141,7 +155,8 @@ class SyncDiaryHomeScreen extends ConsumerWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const SyncDiaryRegistraPagamentoScreen(),
+                                builder: (context) =>
+                                    const SyncDiaryRegistraPagamentoScreen(),
                               ),
                             );
                           },
@@ -168,20 +183,24 @@ class SyncDiaryHomeScreen extends ConsumerWidget {
                 // Section title
                 Text(
                   'Navigazione',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
 
                 // Main Actions grid
                 GridView.count(
-                  crossAxisCount: MediaQuery.of(context).size.width > 600 ? 2 : 1,
+                  crossAxisCount: MediaQuery.of(context).size.width > 600
+                      ? 2
+                      : 1,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
-                  childAspectRatio: MediaQuery.of(context).size.width > 600 ? 3.5 : 4,
+                  childAspectRatio: MediaQuery.of(context).size.width > 600
+                      ? 3.5
+                      : 4,
                   children: [
                     _buildNavigationButton(
                       context,
@@ -192,7 +211,8 @@ class SyncDiaryHomeScreen extends ConsumerWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const SyncDiaryCalendarioScreen(),
+                            builder: (context) =>
+                                const SyncDiaryCalendarioScreen(),
                           ),
                         );
                       },
@@ -206,7 +226,8 @@ class SyncDiaryHomeScreen extends ConsumerWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const SyncDiaryPagamentiScreen(),
+                            builder: (context) =>
+                                const SyncDiaryPagamentiScreen(),
                           ),
                         );
                       },
@@ -214,7 +235,7 @@ class SyncDiaryHomeScreen extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Ricorrenze spans full width
                 _buildNavigationButton(
                   context,
