@@ -108,7 +108,7 @@ class SelectionScreen extends ConsumerWidget {
                         context: context,
                         title: 'Scheduling App',
                         subtitle: 'Gestione Routine & Compiti',
-                        description: 'Organizza le tue giornate, imposta le sveglie, la preparazione al sonno e traccia le tue abitudini.',
+                        description: '',// 'Organizza le tue giornate, imposta le sveglie, la preparazione al sonno e traccia le tue abitudini.',
                         icon: Icons.alarm_on_rounded,
                         accentColor: Colors.blue,
                         gradientColors: isDarkMode
@@ -143,7 +143,7 @@ class SelectionScreen extends ConsumerWidget {
                         context: context,
                         title: 'Pianificatore grafico',
                         subtitle: 'Visualizza la tua giornata',
-                        description: 'Pianifica e visualizza le attività svolte durante la giornata con una timeline oraria.',
+                        description: '',// 'Pianifica e visualizza le attività svolte durante la giornata con una timeline oraria.',
                         icon: Icons.view_timeline_rounded,
                         accentColor: const Color(0xFF8B5CF6),
                         gradientColors: isDarkMode
