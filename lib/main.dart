@@ -23,11 +23,11 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Load environment variables from .env file
+  // Try loading .env if present (e.g. in local development)
   try {
     await dotenv.load(fileName: ".env");
-  } catch (e) {
-    debugPrint('Could not load .env file: $e');
+  } catch (_) {
+    // .env file is optional (e.g. in CI/CD build environments)
   }
   
   // Initialize date formatting for Italian locale
