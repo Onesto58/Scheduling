@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/sync_recurrence.dart';
 import '../models/sync_appointment.dart';
+import '../services/sync_supabase_service.dart';
 import 'sync_appointment_provider.dart';
 
 class SyncRecurrenceState {
@@ -23,116 +24,158 @@ class SyncRecurrenceState {
   }
 }
 
-final syncRecurrencesProvider = NotifierProvider<SyncRecurrenceNotifier, SyncRecurrenceState>(
-  SyncRecurrenceNotifier.new,
-);
+final syncRecurrencesStreamProvider =
+    StreamProvider<List<SyncRecurrence>>((ref) {
+  ref.keepAlive();
+  return ref.read(syncServiceProvider).getRecurrences();
+});
 
-class SyncRecurrenceNotifier extends Notifier<SyncRecurrenceState> {
-  @override
-  SyncRecurrenceState build() {
-    // Generate initial mock recurrences and price rules
-    final recurrences = [
-      SyncRecurrence(id: 1, title: 'Seduta di psicoterapia', weekday: 2, isActive: true), // Martedì
-      SyncRecurrence(id: 2, title: 'Consulenza settimanale', weekday: 4, isActive: true), // Giovedì
-    ];
+final syncPriceRulesStreamProvider =
+    StreamProvider<List<SyncPriceRule>>((ref) {
+  ref.keepAlive();
+  return ref.read(syncServiceProvider).getPriceRules();
+});
 
-    final priceRules = [
-      SyncPriceRule(id: 1, recurrenceId: 1, effectiveFrom: '2026-01-01', priceCents: 5000), // 50€
-      SyncPriceRule(id: 2, recurrenceId: 1, effectiveFrom: '2026-05-10', priceCents: 6000), // 60€
-      SyncPriceRule(id: 3, recurrenceId: 2, effectiveFrom: '2026-01-01', priceCents: 7500), // 75€
-    ];
+final syncRecurrencesProvider = Provider<SyncRecurrenceState>((ref) {
+  final recurrences = ref.watch(syncRecurrencesStreamProvider).maybeWhen(
+        data: (data) => data,
+        orElse: () => <SyncRecurrence>[],
+      );
+  final priceRules = ref.watch(syncPriceRulesStreamProvider).maybeWhen(
+        data: (data) => data,
+        orElse: () => <SyncPriceRule>[],
+      );
+  return SyncRecurrenceState(recurrences: recurrences, priceRules: priceRules);
+});
 
-    return SyncRecurrenceState(recurrences: recurrences, priceRules: priceRules);
-  }
+final syncRecurrencesLoadStateProvider = Provider<AsyncValue<void>>((ref) {
+  ref.watch(syncRecurrencesStreamProvider);
+  ref.watch(syncPriceRulesStreamProvider);
+  final recurrencesAsync = ref.watch(syncRecurrencesStreamProvider);
+  final priceRulesAsync = ref.watch(syncPriceRulesStreamProvider);
 
-  void addRecurrence(String title, int weekday) {
-    final nextId = state.recurrences.isEmpty ? 1 : state.recurrences.map((r) => r.id).reduce((max, id) => id > max ? id : max) + 1;
-    final newRec = SyncRecurrence(id: nextId, title: title, weekday: weekday, isActive: true);
-    
-    // Add default price rule starting today
-    final todayStr = DateTime.now().toString().split(" ")[0];
-    final nextPriceRuleId = state.priceRules.isEmpty ? 1 : state.priceRules.map((p) => p.id).reduce((max, id) => id > max ? id : max) + 1;
-    final newRule = SyncPriceRule(id: nextPriceRuleId, recurrenceId: nextId, effectiveFrom: todayStr, priceCents: 5000);
-
-    state = state.copyWith(
-      recurrences: [...state.recurrences, newRec],
-      priceRules: [...state.priceRules, newRule],
+  if (recurrencesAsync.hasError) {
+    return AsyncValue.error(
+      recurrencesAsync.error!,
+      recurrencesAsync.stackTrace ?? StackTrace.empty,
     );
   }
-
-  void toggleRecurrence(int id) {
-    state = state.copyWith(
-      recurrences: state.recurrences.map((r) {
-        if (r.id == id) {
-          return r.copyWith(isActive: !r.isActive);
-        }
-        return r;
-      }).toList(),
+  if (priceRulesAsync.hasError) {
+    return AsyncValue.error(
+      priceRulesAsync.error!,
+      priceRulesAsync.stackTrace ?? StackTrace.empty,
     );
   }
+  if (recurrencesAsync.isLoading || priceRulesAsync.isLoading) {
+    return const AsyncValue.loading();
+  }
+  return const AsyncValue.data(null);
+});
 
-  void addPriceRule(int recurrenceId, String effectiveFrom, int priceCents) {
-    final nextId = state.priceRules.isEmpty ? 1 : state.priceRules.map((p) => p.id).reduce((max, id) => id > max ? id : max) + 1;
+final syncRecurrenceActionsProvider = Provider((ref) {
+  return SyncRecurrenceActions(
+    ref.watch(syncServiceProvider),
+    ref.watch(syncAppointmentActionsProvider),
+    ref,
+  );
+});
+
+class SyncRecurrenceActions {
+  SyncRecurrenceActions(this._service, this._appointmentActions, this._ref);
+
+  final SyncSupabaseService _service;
+  final SyncAppointmentActions _appointmentActions;
+  final Ref _ref;
+
+  Future<void> addRecurrence(String title, int weekday) async {
+    final newRec = SyncRecurrence(
+      id: '',
+      title: title,
+      weekday: weekday,
+      isActive: true,
+    );
+    final recurrenceId = await _service.saveRecurrence(newRec);
+
+    final todayStr = DateTime.now().toString().split(' ')[0];
     final newRule = SyncPriceRule(
-      id: nextId,
+      id: '',
+      recurrenceId: recurrenceId,
+      effectiveFrom: todayStr,
+      priceCents: 5000,
+    );
+    await _service.savePriceRule(newRule);
+  }
+
+  Future<void> toggleRecurrence(String id) async {
+    final state = _ref.read(syncRecurrencesProvider);
+    final recurrence = state.recurrences.firstWhere((r) => r.id == id);
+    await _service.saveRecurrence(recurrence.copyWith(isActive: !recurrence.isActive));
+  }
+
+  Future<void> addPriceRule(
+    String recurrenceId,
+    String effectiveFrom,
+    int priceCents,
+  ) async {
+    final newRule = SyncPriceRule(
+      id: '',
       recurrenceId: recurrenceId,
       effectiveFrom: effectiveFrom,
       priceCents: priceCents,
     );
-
-    state = state.copyWith(
-      priceRules: [...state.priceRules, newRule],
-    );
+    await _service.savePriceRule(newRule);
   }
 
-  int getActivePrice(int recurrenceId, String dateStr) {
-    final rules = state.priceRules.where((r) => r.recurrenceId == recurrenceId).toList();
+  int getActivePrice(String recurrenceId, String dateStr) {
+    final priceRules = _ref.read(syncRecurrencesProvider).priceRules;
+    final rules =
+        priceRules.where((r) => r.recurrenceId == recurrenceId).toList();
     if (rules.isEmpty) return 5000;
 
-    // Filter rules effective on or before dateStr
-    final effectiveRules = rules.where((r) => r.effectiveFrom.compareTo(dateStr) <= 0).toList();
+    final effectiveRules =
+        rules.where((r) => r.effectiveFrom.compareTo(dateStr) <= 0).toList();
     if (effectiveRules.isEmpty) {
-      // If none effective yet, return the earliest price rule
       rules.sort((a, b) => a.effectiveFrom.compareTo(b.effectiveFrom));
       return rules.first.priceCents;
     }
 
-    // Sort by effectiveFrom descending and get the first
     effectiveRules.sort((a, b) => b.effectiveFrom.compareTo(a.effectiveFrom));
     return effectiveRules.first.priceCents;
   }
 
-  int generateAppointmentsFrom(String startDateStr, int months) {
+  Future<int> generateAppointmentsFrom(String startDateStr, int months) async {
+    final state = _ref.read(syncRecurrencesProvider);
+    final currentAppointments = _ref.read(syncAppointmentsProvider);
     final startDate = DateTime.parse(startDateStr);
     final endDate = startDate.add(Duration(days: months * 30));
-    final appointmentsNotifier = ref.read(syncAppointmentsProvider.notifier);
-    final currentAppointments = ref.read(syncAppointmentsProvider);
 
     int createdCount = 0;
 
-    // Loop through days
     for (int i = 0; i <= endDate.difference(startDate).inDays; i++) {
       final date = startDate.add(Duration(days: i));
-      final dateStr = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-      final weekday = date.weekday; // 1 = Monday, 7 = Sunday
+      final dateStr =
+          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      final weekday = date.weekday;
 
-      // Find active recurrences matching this day of week
-      final activeRecs = state.recurrences.where((r) => r.weekday == weekday && r.isActive).toList();
+      final activeRecs = state.recurrences
+          .where((r) => r.weekday == weekday && r.isActive)
+          .toList();
 
       for (final rec in activeRecs) {
-        // Check if an appointment already exists on this date
-        final exists = currentAppointments.any((a) => a.date == dateStr && a.recurrenceId == rec.id);
+        final exists = currentAppointments.any(
+          (a) => a.date == dateStr && a.recurrenceId == rec.id,
+        );
         if (!exists) {
           final price = getActivePrice(rec.id, dateStr);
           final newAppt = SyncAppointment(
-            id: 0, // Assigned inside provider
+            id: '',
             date: dateStr,
             status: 'previsto',
             priceCents: price,
             recurrenceId: rec.id,
             userId: 1,
           );
-          appointmentsNotifier.addAppointment(newAppt);
+          await _appointmentActions.addAppointment(newAppt);
           createdCount++;
         }
       }
@@ -141,8 +184,8 @@ class SyncRecurrenceNotifier extends Notifier<SyncRecurrenceState> {
     return createdCount;
   }
 
-  int extendTo30MonthsFromToday() {
-    final todayStr = DateTime.now().toString().split(" ")[0];
+  Future<int> extendTo30MonthsFromToday() async {
+    final todayStr = DateTime.now().toString().split(' ')[0];
     return generateAppointmentsFrom(todayStr, 30);
   }
 }

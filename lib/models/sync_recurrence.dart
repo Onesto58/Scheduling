@@ -1,5 +1,7 @@
+import '../utils/rtdb_parsing.dart';
+
 class SyncRecurrence {
-  final int id;
+  final String id;
   final String title;
   final int weekday; // 1 = Monday, 7 = Sunday
   final bool isActive;
@@ -12,7 +14,7 @@ class SyncRecurrence {
   });
 
   SyncRecurrence copyWith({
-    int? id,
+    String? id,
     String? title,
     int? weekday,
     bool? isActive,
@@ -25,28 +27,27 @@ class SyncRecurrence {
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toMap() {
     return {
-      'id': id,
       'title': title,
       'weekday': weekday,
       'is_active': isActive,
     };
   }
 
-  factory SyncRecurrence.fromJson(Map<String, dynamic> json) {
+  factory SyncRecurrence.fromMap(Map<String, dynamic> map, String docId) {
     return SyncRecurrence(
-      id: json['id'] as int,
-      title: json['title'] as String,
-      weekday: json['weekday'] as int,
-      isActive: json['is_active'] as bool,
+      id: docId,
+      title: rtdbParseString(map['title']),
+      weekday: rtdbParseInt(map['weekday'], defaultValue: 1),
+      isActive: rtdbParseBool(map['is_active']),
     );
   }
 }
 
 class SyncPriceRule {
-  final int id;
-  final int recurrenceId;
+  final String id;
+  final String recurrenceId;
   final String effectiveFrom; // YYYY-MM-DD
   final int priceCents;
 
@@ -57,21 +58,20 @@ class SyncPriceRule {
     required this.priceCents,
   });
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toMap() {
     return {
-      'id': id,
       'recurrence_id': recurrenceId,
       'effective_from': effectiveFrom,
       'price_cents': priceCents,
     };
   }
 
-  factory SyncPriceRule.fromJson(Map<String, dynamic> json) {
+  factory SyncPriceRule.fromMap(Map<String, dynamic> map, String docId) {
     return SyncPriceRule(
-      id: json['id'] as int,
-      recurrenceId: json['recurrence_id'] as int,
-      effectiveFrom: json['effective_from'] as String,
-      priceCents: json['price_cents'] as int,
+      id: docId,
+      recurrenceId: rtdbParseString(map['recurrence_id']),
+      effectiveFrom: rtdbParseString(map['effective_from']),
+      priceCents: rtdbParseInt(map['price_cents']),
     );
   }
 }

@@ -1,5 +1,7 @@
+import '../utils/rtdb_parsing.dart';
+
 class SyncAppointment {
-  final int id;
+  final String id;
   final String date; // YYYY-MM-DD
   final String status; // previsto, svolto, pagato, annullato
   final int priceCents;
@@ -7,7 +9,7 @@ class SyncAppointment {
   final String? note;
   final String? paidAt;
   final int? paidPriceCents;
-  final int? recurrenceId;
+  final String? recurrenceId;
   final int userId;
 
   SyncAppointment({
@@ -26,7 +28,7 @@ class SyncAppointment {
   int get effectivePriceCents => overridePriceCents ?? priceCents;
 
   SyncAppointment copyWith({
-    int? id,
+    String? id,
     String? date,
     String? status,
     int? priceCents,
@@ -34,7 +36,7 @@ class SyncAppointment {
     String? Function()? note,
     String? Function()? paidAt,
     int? Function()? paidPriceCents,
-    int? Function()? recurrenceId,
+    String? Function()? recurrenceId,
     int? userId,
   }) {
     return SyncAppointment(
@@ -51,9 +53,8 @@ class SyncAppointment {
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toMap() {
     return {
-      'id': id,
       'date': date,
       'status': status,
       'price_cents': priceCents,
@@ -66,18 +67,24 @@ class SyncAppointment {
     };
   }
 
-  factory SyncAppointment.fromJson(Map<String, dynamic> json) {
+  factory SyncAppointment.fromMap(Map<String, dynamic> map, String docId) {
     return SyncAppointment(
-      id: json['id'] as int,
-      date: json['date'] as String,
-      status: json['status'] as String,
-      priceCents: json['price_cents'] as int,
-      overridePriceCents: json['override_price_cents'] as int?,
-      note: json['note'] as String?,
-      paidAt: json['paid_at'] as String?,
-      paidPriceCents: json['paid_price_cents'] as int?,
-      recurrenceId: json['recurrence_id'] as int?,
-      userId: json['user_id'] as int,
+      id: docId,
+      date: rtdbParseString(map['date']),
+      status: rtdbParseString(map['status'], defaultValue: 'previsto'),
+      priceCents: rtdbParseInt(map['price_cents']),
+      overridePriceCents: map['override_price_cents'] == null
+          ? null
+          : rtdbParseInt(map['override_price_cents']),
+      note: map['note'] == null ? null : rtdbParseString(map['note']),
+      paidAt: map['paid_at'] == null ? null : rtdbParseString(map['paid_at']),
+      paidPriceCents: map['paid_price_cents'] == null
+          ? null
+          : rtdbParseInt(map['paid_price_cents']),
+      recurrenceId: map['recurrence_id'] == null
+          ? null
+          : rtdbParseString(map['recurrence_id']),
+      userId: rtdbParseInt(map['user_id'], defaultValue: 1),
     );
   }
 }

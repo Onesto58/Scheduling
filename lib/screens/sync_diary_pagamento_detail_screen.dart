@@ -6,7 +6,7 @@ import '../providers/sync_payment_provider.dart';
 import '../providers/theme_provider.dart';
 
 class SyncDiaryPagamentoDetailScreen extends ConsumerWidget {
-  final int paymentId;
+  final String paymentId;
 
   const SyncDiaryPagamentoDetailScreen({super.key, required this.paymentId});
 

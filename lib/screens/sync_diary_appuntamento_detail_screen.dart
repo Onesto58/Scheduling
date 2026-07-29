@@ -6,7 +6,7 @@ import '../providers/sync_appointment_provider.dart';
 import '../providers/theme_provider.dart';
 
 class SyncDiaryAppuntamentoDetailScreen extends ConsumerStatefulWidget {
-  final int appointmentId;
+  final String appointmentId;
 
   const SyncDiaryAppuntamentoDetailScreen({super.key, required this.appointmentId});
 
@@ -363,8 +363,7 @@ class _SyncDiaryAppuntamentoDetailScreenState extends ConsumerState<SyncDiaryApp
 
                   // Action Buttons
                   ElevatedButton(
-                    onPressed: () {
-                      // Save modifications
+                    onPressed: () async {
                       final overridePriceText = _overridePriceController.text;
                       int? overrideCents;
                       if (overridePriceText.isNotEmpty) {
@@ -380,7 +379,9 @@ class _SyncDiaryAppuntamentoDetailScreenState extends ConsumerState<SyncDiaryApp
                         overridePriceCents: () => _selectedStatus == 'pagato' ? appointment.overridePriceCents : overrideCents,
                       );
 
-                      ref.read(syncAppointmentsProvider.notifier).updateAppointment(updatedAppointment);
+                      await ref.read(syncAppointmentActionsProvider).updateAppointment(updatedAppointment);
+
+                      if (!context.mounted) return;
 
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(

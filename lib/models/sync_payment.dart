@@ -1,5 +1,7 @@
+import '../utils/rtdb_parsing.dart';
+
 class SyncPaymentAllocation {
-  final int appointmentId;
+  final String appointmentId;
   final String date; // YYYY-MM-DD
   final int allocatedCents;
 
@@ -9,7 +11,7 @@ class SyncPaymentAllocation {
     required this.allocatedCents,
   });
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toMap() {
     return {
       'appointment_id': appointmentId,
       'date': date,
@@ -17,17 +19,17 @@ class SyncPaymentAllocation {
     };
   }
 
-  factory SyncPaymentAllocation.fromJson(Map<String, dynamic> json) {
+  factory SyncPaymentAllocation.fromMap(Map<String, dynamic> map) {
     return SyncPaymentAllocation(
-      appointmentId: json['appointment_id'] as int,
-      date: json['date'] as String,
-      allocatedCents: json['allocated_cents'] as int,
+      appointmentId: rtdbParseString(map['appointment_id']),
+      date: rtdbParseString(map['date']),
+      allocatedCents: rtdbParseInt(map['allocated_cents']),
     );
   }
 }
 
 class SyncPayment {
-  final int id;
+  final String id;
   final String paidOn; // YYYY-MM-DD
   final int amountCents;
   final String? note;
@@ -43,26 +45,27 @@ class SyncPayment {
     required this.appointments,
   });
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toMap() {
     return {
-      'id': id,
       'paid_on': paidOn,
       'amount_cents': amountCents,
       'note': note,
       'user_id': userId,
-      'appointments': appointments.map((a) => a.toJson()).toList(),
+      'appointments': appointments.map((a) => a.toMap()).toList(),
     };
   }
 
-  factory SyncPayment.fromJson(Map<String, dynamic> json) {
+  factory SyncPayment.fromMap(Map<String, dynamic> map, String docId) {
     return SyncPayment(
-      id: json['id'] as int,
-      paidOn: json['paid_on'] as String,
-      amountCents: json['amount_cents'] as int,
-      note: json['note'] as String?,
-      userId: json['user_id'] as int,
-      appointments: (json['appointments'] as List<dynamic>)
-          .map((a) => SyncPaymentAllocation.fromJson(a as Map<String, dynamic>))
+      id: docId,
+      paidOn: rtdbParseString(map['paid_on']),
+      amountCents: rtdbParseInt(map['amount_cents']),
+      note: map['note'] == null ? null : rtdbParseString(map['note']),
+      userId: rtdbParseInt(map['user_id'], defaultValue: 1),
+      appointments: (map['appointments'] as List<dynamic>? ?? [])
+          .map((a) => SyncPaymentAllocation.fromMap(
+                rtdbToStringKeyMap(a),
+              ))
           .toList(),
     );
   }

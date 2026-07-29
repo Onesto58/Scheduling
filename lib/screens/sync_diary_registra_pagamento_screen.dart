@@ -16,7 +16,7 @@ class SyncDiaryRegistraPagamentoScreen extends ConsumerStatefulWidget {
 class _SyncDiaryRegistraPagamentoScreenState extends ConsumerState<SyncDiaryRegistraPagamentoScreen> {
   final TextEditingController _noteController = TextEditingController();
   DateTime _paidOnDate = DateTime.now();
-  final Map<int, bool> _selectedAppointments = {};
+  final Map<String, bool> _selectedAppointments = {};
   bool _isInitialized = false;
 
   @override
@@ -360,8 +360,7 @@ class _SyncDiaryRegistraPagamentoScreenState extends ConsumerState<SyncDiaryRegi
                           ElevatedButton(
                             onPressed: !hasSelection
                                 ? null
-                                : () {
-                                    // 1. Gather all selected appointments
+                                : () async {
                                     final selectedList = unpaidAppointments
                                         .where((a) => _selectedAppointments[a.id] == true)
                                         .toList();
@@ -369,15 +368,15 @@ class _SyncDiaryRegistraPagamentoScreenState extends ConsumerState<SyncDiaryRegi
                                     final paidOnStr =
                                         "${_paidOnDate.year}-${_paidOnDate.month.toString().padLeft(2, '0')}-${_paidOnDate.day.toString().padLeft(2, '0')}";
 
-                                    // 2. Register payment
-                                    final paymentId = ref.read(syncPaymentsProvider.notifier).registerPayment(
-                                          userId: 1, // Mock user ID
+                                    final paymentId = await ref.read(syncPaymentActionsProvider).registerPayment(
+                                          userId: 1,
                                           paidOn: paidOnStr,
                                           note: _noteController.text.isEmpty ? null : _noteController.text,
                                           selectedAppointments: selectedList,
                                         );
 
-                                    // 3. Show Success SnackBar
+                                    if (!context.mounted) return;
+
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content: Text('Pagamento registrato con successo!'),
@@ -385,7 +384,6 @@ class _SyncDiaryRegistraPagamentoScreenState extends ConsumerState<SyncDiaryRegi
                                       ),
                                     );
 
-                                    // 4. Redirect replacement to detail screen
                                     Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(

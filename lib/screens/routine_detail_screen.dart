@@ -338,11 +338,8 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
           },
         );
       },
-      onReorder: (oldIndex, newIndex) {
+      onReorderItem: (oldIndex, newIndex) {
         setState(() {
-          if (oldIndex < newIndex) {
-            newIndex -= 1;
-          }
           final item = tasks.removeAt(oldIndex);
           tasks.insert(newIndex, item);
         });

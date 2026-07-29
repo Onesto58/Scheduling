@@ -60,3 +60,4 @@ android/key.properties
 # Other local files
 inizialization.txt
 .firebaserc
+.env.example

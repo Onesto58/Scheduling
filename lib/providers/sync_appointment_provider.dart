@@ -1,88 +1,40 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/sync_appointment.dart';
+import '../services/sync_supabase_service.dart';
 
-final syncAppointmentsProvider = NotifierProvider<SyncAppointmentNotifier, List<SyncAppointment>>(
-  SyncAppointmentNotifier.new,
-);
+final syncServiceProvider = Provider((ref) {
+  ref.keepAlive();
+  return SyncSupabaseService();
+});
 
-class SyncAppointmentNotifier extends Notifier<List<SyncAppointment>> {
-  @override
-  List<SyncAppointment> build() {
-    // Generate mock appointments for May 2026
-    return [
-      SyncAppointment(
-        id: 1,
-        date: '2026-05-02',
-        status: 'svolto',
-        priceCents: 5000,
-        note: 'Prima seduta mensile, da saldare.',
-        userId: 1,
-      ),
-      SyncAppointment(
-        id: 2,
-        date: '2026-05-08',
-        status: 'pagato',
-        priceCents: 5000,
-        paidAt: '2026-05-09',
-        note: 'Pagato tramite bonifico bancario.',
-        userId: 1,
-      ),
-      SyncAppointment(
-        id: 3,
-        date: '2026-05-15',
-        status: 'previsto',
-        priceCents: 6000,
-        overridePriceCents: 5500,
-        note: 'Prezzo scontato concordato.',
-        userId: 1,
-      ),
-      SyncAppointment(
-        id: 4,
-        date: '2026-05-19',
-        status: 'previsto',
-        priceCents: 5000,
-        userId: 1,
-      ),
-      SyncAppointment(
-        id: 5,
-        date: '2026-05-22',
-        status: 'annullato',
-        priceCents: 5000,
-        note: 'Paziente impossibilitato a partecipare.',
-        userId: 1,
-      ),
-      SyncAppointment(
-        id: 6,
-        date: '2026-05-26',
-        status: 'previsto',
-        priceCents: 5000,
-        userId: 1,
-      ),
-      SyncAppointment(
-        id: 7,
-        date: '2026-06-02',
-        status: 'previsto',
-        priceCents: 5000,
-        userId: 1,
-      ),
-    ];
+final syncAppointmentsStreamProvider =
+    StreamProvider<List<SyncAppointment>>((ref) {
+  ref.keepAlive();
+  return ref.read(syncServiceProvider).getAppointments();
+});
+
+final syncAppointmentsProvider = Provider<List<SyncAppointment>>((ref) {
+  return ref.watch(syncAppointmentsStreamProvider).value ?? [];
+});
+
+final syncAppointmentActionsProvider = Provider((ref) {
+  return SyncAppointmentActions(ref.watch(syncServiceProvider));
+});
+
+class SyncAppointmentActions {
+  SyncAppointmentActions(this._service);
+
+  final SyncSupabaseService _service;
+
+  Future<void> updateAppointment(SyncAppointment updated) async {
+    await _service.saveAppointment(updated);
   }
 
-  void updateAppointment(SyncAppointment updated) {
-    state = [
-      for (final a in state)
-        if (a.id == updated.id) updated else a
-    ];
+  Future<void> deleteAppointment(String id) async {
+    await _service.deleteAppointment(id);
   }
 
-  void deleteAppointment(int id) {
-    state = state.where((a) => a.id != id).toList();
-  }
-
-  void addAppointment(SyncAppointment item) {
-    // Generate a new unique ID
-    final newId = state.isEmpty ? 1 : state.map((a) => a.id).reduce((max, id) => id > max ? id : max) + 1;
-    final newItem = item.copyWith(id: newId);
-    state = [...state, newItem];
+  Future<void> addAppointment(SyncAppointment item) async {
+    await _service.saveAppointment(item);
   }
 }

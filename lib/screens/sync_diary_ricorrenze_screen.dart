@@ -12,7 +12,7 @@ class SyncDiaryRicorrenzeScreen extends ConsumerStatefulWidget {
 }
 
 class _SyncDiaryRicorrenzeScreenState extends ConsumerState<SyncDiaryRicorrenzeScreen> {
-  int? _selectedRecurrenceId;
+  String? _selectedRecurrenceId;
   final TextEditingController _priceAmountController = TextEditingController();
   DateTime? _priceEffectiveDate;
   DateTime? _generateStartDate;
@@ -151,10 +151,11 @@ class _SyncDiaryRicorrenzeScreenState extends ConsumerState<SyncDiaryRicorrenzeS
                   child: const Text('Annulla'),
                 ),
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     final title = _newTitleController.text.trim();
                     if (title.isNotEmpty) {
-                      ref.read(syncRecurrencesProvider.notifier).addRecurrence(title, _newWeekday);
+                      await ref.read(syncRecurrenceActionsProvider).addRecurrence(title, _newWeekday);
+                      if (!context.mounted) return;
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -181,6 +182,7 @@ class _SyncDiaryRicorrenzeScreenState extends ConsumerState<SyncDiaryRicorrenzeS
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(syncRecurrencesProvider);
+    final loadState = ref.watch(syncRecurrencesLoadStateProvider);
     final themeMode = ref.watch(themeProvider);
     final isDarkMode = themeMode == ThemeMode.dark;
 
@@ -211,7 +213,21 @@ class _SyncDiaryRicorrenzeScreenState extends ConsumerState<SyncDiaryRicorrenzeS
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (loadState.hasError)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Text(
+                        'Errore caricamento ricorrenze: ${loadState.error}',
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  if (loadState.isLoading && state.recurrences.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 32),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
                   // List of recurrences
+                  if (!loadState.isLoading || state.recurrences.isNotEmpty)
                   if (state.recurrences.isEmpty)
                     Card(
                       elevation: 0,
@@ -293,7 +309,7 @@ class _SyncDiaryRicorrenzeScreenState extends ConsumerState<SyncDiaryRicorrenzeS
                                   Switch(
                                     value: rec.isActive,
                                     onChanged: (_) {
-                                      ref.read(syncRecurrencesProvider.notifier).toggleRecurrence(rec.id);
+                                      ref.read(syncRecurrenceActionsProvider).toggleRecurrence(rec.id);
                                     },
                                   ),
                                 ],
@@ -421,12 +437,13 @@ class _SyncDiaryRicorrenzeScreenState extends ConsumerState<SyncDiaryRicorrenzeS
                                 ElevatedButton(
                                   onPressed: (_priceEffectiveDate == null || _priceAmountController.text.trim().isEmpty)
                                       ? null
-                                      : () {
+                                      : () async {
                                           final parsedAmount = double.tryParse(_priceAmountController.text.trim());
                                           if (parsedAmount != null && _priceEffectiveDate != null) {
                                             final cents = (parsedAmount * 100).round();
                                             final dateStr = DateFormat('yyyy-MM-dd').format(_priceEffectiveDate!);
-                                            ref.read(syncRecurrencesProvider.notifier).addPriceRule(rec.id, dateStr, cents);
+                                            await ref.read(syncRecurrenceActionsProvider).addPriceRule(rec.id, dateStr, cents);
+                                            if (!context.mounted) return;
                                             setState(() {
                                               _priceEffectiveDate = null;
                                               _priceAmountController.clear();
@@ -510,9 +527,10 @@ class _SyncDiaryRicorrenzeScreenState extends ConsumerState<SyncDiaryRicorrenzeS
                               ElevatedButton(
                                 onPressed: _generateStartDate == null
                                     ? null
-                                    : () {
+                                    : () async {
                                         final dateStr = DateFormat('yyyy-MM-dd').format(_generateStartDate!);
-                                        final count = ref.read(syncRecurrencesProvider.notifier).generateAppointmentsFrom(dateStr, 30);
+                                        final count = await ref.read(syncRecurrenceActionsProvider).generateAppointmentsFrom(dateStr, 30);
+                                        if (!context.mounted) return;
                                         setState(() {
                                           _generateStartDate = null;
                                         });
@@ -540,8 +558,9 @@ class _SyncDiaryRicorrenzeScreenState extends ConsumerState<SyncDiaryRicorrenzeS
                           const Divider(height: 1),
                           const SizedBox(height: 16),
                           ElevatedButton(
-                            onPressed: () {
-                              final count = ref.read(syncRecurrencesProvider.notifier).extendTo30MonthsFromToday();
+                            onPressed: () async {
+                              final count = await ref.read(syncRecurrenceActionsProvider).extendTo30MonthsFromToday();
+                              if (!context.mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text('Estensione completata: $count appuntamenti creati!'),
