@@ -36,11 +36,11 @@ void main() async {
   // Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
 
-  // Initialize Supabase
+  // Initialize Supabase with .env, environment vars, or direct fallback credentials
   final supabaseUrl = (dotenv.isInitialized ? dotenv.env['SUPABASE_URL'] : null) ?? 
-      const String.fromEnvironment('SUPABASE_URL', defaultValue: '');
+      const String.fromEnvironment('SUPABASE_URL', defaultValue: 'https://pjwdjgkfpubdlcidmcbo.supabase.co');
   final supabaseAnonKey = (dotenv.isInitialized ? dotenv.env['SUPABASE_ANON_KEY'] : null) ?? 
-      const String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: '');
+      const String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqd2RqZ2tmcHViZGxjaWRtY2JvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyOTM5MDgsImV4cCI6MjEwMDg2OTkwOH0.WTWrRwcfLHPxYBQqt3YvQX07XXtxd1kdsDJH3X2lK-8');
 
   if (supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty) {
     await Supabase.initialize(
