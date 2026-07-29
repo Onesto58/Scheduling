@@ -67,8 +67,9 @@ class _SyncDiaryRegistraPagamentoScreenState extends ConsumerState<SyncDiaryRegi
     final themeMode = ref.watch(themeProvider);
     final isDarkMode = themeMode == ThemeMode.dark;
 
-    // Filter unpaid appointments
-    final unpaidAppointments = appointments.where((a) => a.status != 'pagato').toList();
+    // Filter unpaid appointments and sort by appointment date
+    final unpaidAppointments = appointments.where((a) => a.status != 'pagato').toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
 
     // Auto-select status 'svolto' on first load
     if (!_isInitialized && unpaidAppointments.isNotEmpty) {
