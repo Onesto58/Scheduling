@@ -101,320 +101,317 @@ class _SyncDiaryRegistraPagamentoScreenState extends ConsumerState<SyncDiaryRegi
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Center(
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 600),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Form Card
-                  Card(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(
-                        color: isDarkMode ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
-                      ),
-                    ),
-                    color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Dettagli Pagamento',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+        child: Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16.0),
+                    itemCount: unpaidAppointments.length + 3,
+                    itemBuilder: (context, index) {
+                      if (index == 0) {
+                        // 1. Form Card
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 20),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            side: BorderSide(
+                              color: isDarkMode ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
                             ),
                           ),
-                          const SizedBox(height: 16),
-
-                          // 1. Paid On Date Selector
-                          const Text(
-                            'Data Pagamento',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          InkWell(
-                            onTap: () => _selectDate(context),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                              decoration: BoxDecoration(
-                                color: isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: isDarkMode ? Colors.white10 : Colors.black12,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    DateFormat('dd/MM/yyyy', 'it_IT').format(_paidOnDate),
-                                    style: const TextStyle(fontSize: 15),
+                          color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Dettagli Pagamento',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  const Icon(Icons.calendar_month, color: Colors.grey),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-
-                          // 2. Notes Textarea
-                          const Text(
-                            'Note (facoltative)',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextFormField(
-                            controller: _noteController,
-                            maxLines: 3,
-                            decoration: InputDecoration(
-                              filled: true,
-                              fillColor: isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                              hintText: 'Note aggiuntive sul pagamento...',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color: isDarkMode ? Colors.white10 : Colors.black12,
                                 ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color: isDarkMode ? Colors.white10 : Colors.black12,
+                                const SizedBox(height: 16),
+
+                                // Paid On Date Selector
+                                const Text(
+                                  'Data Pagamento',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Appointments Selection Card
-                  Card(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(
-                        color: isDarkMode ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
-                      ),
-                    ),
-                    color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Appuntamenti nel periodo',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Seleziona gli appuntamenti da includere nel pagamento',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDarkMode ? Colors.white60 : Colors.black54,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          unpaidAppointments.isEmpty
-                              ? const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 24.0),
-                                    child: Text(
-                                      'Nessun appuntamento da pagare',
-                                      style: TextStyle(color: Colors.grey),
+                                const SizedBox(height: 8),
+                                InkWell(
+                                  onTap: () => _selectDate(context),
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                    decoration: BoxDecoration(
+                                      color: isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: isDarkMode ? Colors.white10 : Colors.black12,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          DateFormat('dd/MM/yyyy', 'it_IT').format(_paidOnDate),
+                                          style: const TextStyle(fontSize: 15),
+                                        ),
+                                        const Icon(Icons.calendar_month, color: Colors.grey),
+                                      ],
                                     ),
                                   ),
-                                )
-                              : ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: unpaidAppointments.length,
-                                  itemBuilder: (context, index) {
-                                    final appt = unpaidAppointments[index];
-                                    final apptDate = DateTime.parse(appt.date);
-                                    final formattedApptDate =
-                                        DateFormat('EEEE d MMMM yyyy', 'it_IT').format(apptDate);
-                                    final formattedApptDateCap =
-                                        formattedApptDate[0].toUpperCase() + formattedApptDate.substring(1);
-
-                                    final isSelected = _selectedAppointments[appt.id] ?? false;
-                                    final isDisabled = appt.status != 'svolto';
-
-                                    return Opacity(
-                                      opacity: isDisabled ? 0.5 : 1.0,
-                                      child: Container(
-                                        margin: const EdgeInsets.only(bottom: 8),
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                            color: isSelected
-                                                ? (isDarkMode ? Colors.indigoAccent : Colors.blueAccent)
-                                                : (isDarkMode ? Colors.white10 : Colors.black12),
-                                            width: isSelected ? 1.5 : 1.0,
-                                          ),
-                                          borderRadius: BorderRadius.circular(12),
-                                          color: isSelected
-                                              ? (isDarkMode
-                                                  ? Colors.indigoAccent.withValues(alpha: 0.1)
-                                                  : Colors.blueAccent.withValues(alpha: 0.05))
-                                              : Colors.transparent,
-                                        ),
-                                        child: CheckboxListTile(
-                                          value: isSelected,
-                                          onChanged: isDisabled
-                                              ? null
-                                              : (val) {
-                                                  setState(() {
-                                                    _selectedAppointments[appt.id] = val ?? false;
-                                                  });
-                                                },
-                                          title: Text(
-                                            formattedApptDateCap,
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                          subtitle: Text(
-                                            _getStatusLabel(appt.status),
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: isDarkMode ? Colors.white60 : Colors.black54,
-                                            ),
-                                          ),
-                                          secondary: Text(
-                                            _formatCurrency(appt.effectivePriceCents),
-                                            style: const TextStyle(
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          controlAffinity: ListTileControlAffinity.leading,
-                                          contentPadding: EdgeInsets.zero,
-                                          activeColor: isDarkMode ? Colors.indigoAccent : Colors.blueAccent,
-                                        ),
-                                      ),
-                                    );
-                                  },
                                 ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
+                                const SizedBox(height: 20),
 
-                  // Total and Confirm Box
-                  Card(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(
-                        color: isDarkMode ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
-                      ),
-                    ),
-                    color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                // Notes Textarea
+                                const Text(
+                                  'Note (facoltative)',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                TextFormField(
+                                  controller: _noteController,
+                                  maxLines: 3,
+                                  decoration: InputDecoration(
+                                    filled: true,
+                                    fillColor: isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                                    hintText: 'Note aggiuntive sul pagamento...',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(
+                                        color: isDarkMode ? Colors.white10 : Colors.black12,
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(
+                                        color: isDarkMode ? Colors.white10 : Colors.black12,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+                      if (index == 1) {
+                        // 2. Section Header
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 4, right: 4, bottom: 12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                'Totale',
+                                'Appuntamenti nel periodo',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
+                              const SizedBox(height: 4),
                               Text(
-                                _formatCurrency(selectedTotalCents),
+                                'Seleziona gli appuntamenti da includere nel pagamento',
                                 style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: isDarkMode ? Colors.indigoAccent : Colors.blueAccent,
+                                  fontSize: 12,
+                                  color: isDarkMode ? Colors.white60 : Colors.black54,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: !hasSelection
-                                ? null
-                                : () async {
-                                    final selectedList = unpaidAppointments
-                                        .where((a) => _selectedAppointments[a.id] == true)
-                                        .toList();
+                        );
+                      }
 
-                                    final paidOnStr =
-                                        "${_paidOnDate.year}-${_paidOnDate.month.toString().padLeft(2, '0')}-${_paidOnDate.day.toString().padLeft(2, '0')}";
-
-                                    final paymentId = await ref.read(syncPaymentActionsProvider).registerPayment(
-                                          userId: 1,
-                                          paidOn: paidOnStr,
-                                          note: _noteController.text.isEmpty ? null : _noteController.text,
-                                          selectedAppointments: selectedList,
-                                        );
-
-                                    if (!context.mounted) return;
-
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Pagamento registrato con successo!'),
-                                        backgroundColor: Colors.green,
-                                      ),
-                                    );
-
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => SyncDiaryPagamentoDetailScreen(paymentId: paymentId),
-                                      ),
-                                    );
-                                  },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF10B981),
-                              foregroundColor: Colors.white,
-                              minimumSize: const Size.fromHeight(50),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                      if (index == unpaidAppointments.length + 2) {
+                        // Empty indicator if no appointments
+                        if (unpaidAppointments.isEmpty) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 24.0),
+                              child: Text(
+                                'Nessun appuntamento da pagare',
+                                style: TextStyle(color: Colors.grey),
                               ),
-                              elevation: 0,
                             ),
-                            child: const Text(
-                              'Conferma Pagamento',
+                          );
+                        }
+                        return const SizedBox(height: 80); // Bottom padding for FAB/Summary bar
+                      }
+
+                      // 3. Appointment Item
+                      final appt = unpaidAppointments[index - 2];
+                      final apptDate = DateTime.parse(appt.date);
+                      final formattedApptDate = DateFormat('EEEE d MMMM yyyy', 'it_IT').format(apptDate);
+                      final formattedApptDateCap =
+                          formattedApptDate[0].toUpperCase() + formattedApptDate.substring(1);
+
+                      final isSelected = _selectedAppointments[appt.id] ?? false;
+                      final isDisabled = appt.status != 'svolto';
+
+                      return Opacity(
+                        opacity: isDisabled ? 0.5 : 1.0,
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: isSelected
+                                  ? (isDarkMode ? Colors.indigoAccent : Colors.blueAccent)
+                                  : (isDarkMode ? Colors.white10 : Colors.black12),
+                              width: isSelected ? 1.5 : 1.0,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            color: isSelected
+                                ? (isDarkMode
+                                    ? Colors.indigoAccent.withValues(alpha: 0.1)
+                                    : Colors.blueAccent.withValues(alpha: 0.05))
+                                : (isDarkMode ? const Color(0xFF1E293B) : Colors.white),
+                          ),
+                          child: CheckboxListTile(
+                            value: isSelected,
+                            onChanged: isDisabled
+                                ? null
+                                : (val) {
+                                    setState(() {
+                                      _selectedAppointments[appt.id] = val ?? false;
+                                    });
+                                  },
+                            title: Text(
+                              formattedApptDateCap,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            subtitle: Text(
+                              _getStatusLabel(appt.status),
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 12,
+                                color: isDarkMode ? Colors.white60 : Colors.black54,
+                              ),
+                            ),
+                            secondary: Text(
+                              _formatCurrency(appt.effectivePriceCents),
+                              style: const TextStyle(
+                                fontSize: 15,
                                 fontWeight: FontWeight.bold,
                               ),
+                            ),
+                            controlAffinity: ListTileControlAffinity.leading,
+                            contentPadding: EdgeInsets.zero,
+                            activeColor: isDarkMode ? Colors.indigoAccent : Colors.blueAccent,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                // Bottom Sticky Total and Confirm Box
+                Container(
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, -4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Totale',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            _formatCurrency(selectedTotalCents),
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: isDarkMode ? Colors.indigoAccent : Colors.blueAccent,
                             ),
                           ),
                         ],
                       ),
-                    ),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: !hasSelection
+                            ? null
+                            : () async {
+                                final selectedList = unpaidAppointments
+                                    .where((a) => _selectedAppointments[a.id] == true)
+                                    .toList();
+
+                                final paidOnStr =
+                                    "${_paidOnDate.year}-${_paidOnDate.month.toString().padLeft(2, '0')}-${_paidOnDate.day.toString().padLeft(2, '0')}";
+
+                                final paymentId = await ref.read(syncPaymentActionsProvider).registerPayment(
+                                      userId: 1,
+                                      paidOn: paidOnStr,
+                                      note: _noteController.text.isEmpty ? null : _noteController.text,
+                                      selectedAppointments: selectedList,
+                                    );
+
+                                if (!context.mounted) return;
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Pagamento registrato con successo!'),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SyncDiaryPagamentoDetailScreen(paymentId: paymentId),
+                                  ),
+                                );
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF10B981),
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size.fromHeight(50),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'Conferma Pagamento',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
