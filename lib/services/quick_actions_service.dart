@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:quick_actions/quick_actions.dart';
 import '../screens/routine_detail_screen.dart';
@@ -11,6 +12,11 @@ class QuickActionsService {
   GlobalKey<NavigatorState>? _navigatorKey;
 
   void initialize(GlobalKey<NavigatorState> navigatorKey) {
+    // QuickActions is only supported on Android and iOS (not Web, Windows, macOS, Linux)
+    if (kIsWeb || (defaultTargetPlatform != TargetPlatform.android && defaultTargetPlatform != TargetPlatform.iOS)) {
+      return;
+    }
+
     _navigatorKey = navigatorKey;
     
     _quickActions.setShortcutItems(<ShortcutItem>[

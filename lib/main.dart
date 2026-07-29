@@ -16,11 +16,19 @@ import 'screens/pianificatore_grafico_screen.dart';
 import 'providers/app_choice_provider.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Load environment variables from .env file
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    debugPrint('Could not load .env file: $e');
+  }
   
   // Initialize date formatting for Italian locale
   await initializeDateFormatting('it_IT', null);
@@ -29,16 +37,12 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
 
   // Initialize Supabase
-  const supabaseUrl = String.fromEnvironment(
-    'SUPABASE_URL',
-    defaultValue: 'https://your-supabase-project.supabase.co',
-  );
-  const supabaseAnonKey = String.fromEnvironment(
-    'SUPABASE_ANON_KEY',
-    defaultValue: 'your-supabase-anon-key',
-  );
+  final supabaseUrl = dotenv.env['SUPABASE_URL'] ?? 
+      const String.fromEnvironment('SUPABASE_URL', defaultValue: '');
+  final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'] ?? 
+      const String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: '');
 
-  if (supabaseUrl != 'https://your-supabase-project.supabase.co') {
+  if (supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty) {
     await Supabase.initialize(
       url: supabaseUrl,
       publishableKey: supabaseAnonKey,
