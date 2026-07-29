@@ -37,9 +37,9 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
 
   // Initialize Supabase
-  final supabaseUrl = dotenv.env['SUPABASE_URL'] ?? 
+  final supabaseUrl = (dotenv.isInitialized ? dotenv.env['SUPABASE_URL'] : null) ?? 
       const String.fromEnvironment('SUPABASE_URL', defaultValue: '');
-  final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'] ?? 
+  final supabaseAnonKey = (dotenv.isInitialized ? dotenv.env['SUPABASE_ANON_KEY'] : null) ?? 
       const String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: '');
 
   if (supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty) {
